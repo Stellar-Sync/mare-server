@@ -28,7 +28,7 @@
     "DbContextPoolSize": 512,
     "ShardName": "AuthServices",
     "MetricsPort": 6150,
-    "Jwt": "${DEV_MARE_JWT_SECRET}",
+    "Jwt": "teststringteststringteststringteststringteststringteststringteststringteststringteststringteststring",
     "RedisConnectionString": "redis,password=secretredispassword",
     "FailedAuthForTempBan": 5,
     "UseGeoIP": false,
