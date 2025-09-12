@@ -187,7 +187,7 @@ internal class DiscordBot : IHostedService
         eb.WithTitle("Mare Services Bot Interaction Service");
         eb.WithDescription("Press \"Start\" to interact with this bot!" + Environment.NewLine + Environment.NewLine
             + "You can handle all of your Mare account needs in this server through the easy to use interactive bot prompt. Just follow the instructions!");
-        eb.WithThumbnailUrl("https://raw.githubusercontent.com/Penumbra-Sync/repo/main/MareSynchronos/images/icon.png");
+        eb.WithThumbnailUrl("https://raw.githubusercontent.com/Stellar-Sync/repo/main/StellarSync/images/icon.png");
         var cb = new ComponentBuilder();
         cb.WithButton("Start", style: ButtonStyle.Primary, customId: "wizard-captcha:true", emote: Emoji.Parse("➡️"));
         if (prevMessage == null)
