@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 as BUILD
 
 RUN git clone --recurse-submodules https://github.com/Stellar-Sync/mare-server
 
-WORKDIR /server/MareSynchronosServer/MareSynchronosStaticFilesServer/
+WORKDIR /mare-server/MareSynchronosServer/MareSynchronosStaticFilesServer/
 
 RUN dotnet publish \
         --configuration=Release \
