@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:latest
-    command: ["postgres", "-c", "log_statement=all"]
+    command: ['postgres', '-c', 'log_statement=all']
     restart: always
     ports:
       - 5432:5432/tcp
@@ -13,14 +13,19 @@ services:
       - ../data/postgresql/:/var/lib/postgresql/data
       - postgres_socket:/var/run/postgresql:rw
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mare"]
+      test: ['CMD-SHELL', 'pg_isready -U mare']
       interval: 5s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:latest
-    command: [sh, -c, "rm -f /data/dump.rdb && redis-server --save \"\" --appendonly no --requirepass secretredispassword"]
+    command:
+      [
+        sh,
+        -c,
+        'rm -f /data/dump.rdb && redis-server --save "" --appendonly no --requirepass secretredispassword',
+      ]
     volumes:
       - cache:/data
 
@@ -31,8 +36,9 @@ services:
       - 6000:6000/tcp
       - 6050:6050/tcp
     environment:
-      MareSynchronos__CdnFullUrl: "${DEV_MARE_CDNURL}"
-      MareSynchronos__XIVAPIKey: "${DEV_MARE_XIVAPIKEY}"
+      MareSynchronos__CdnFullUrl: '${DEV_MARE_CDNURL}'
+      MareSynchronos__XIVAPIKey: '${DEV_MARE_XIVAPIKEY}'
+      DEV_MARE_JWT_SECRET: '${DEV_MARE_JWT_SECRET}'
       DOTNET_USE_POLLING_FILE_WATCHER: 1
     volumes:
       - ../config/standalone/server-standalone.json:/opt/MareSynchronosServer/appsettings.json
@@ -42,7 +48,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl --fail http://localhost:6000/health || exit 1"]
+      test: ['CMD-SHELL', 'curl --fail http://localhost:6000/health || exit 1']
       retries: 60
       start_period: 10s
       timeout: 1s
@@ -50,8 +56,12 @@ services:
   mare-auth:
     image: darkarchon/mare-synchronos-authservice:latest
     restart: on-failure
+    ports:
+      - 8080:8080/tcp
     environment:
       DOTNET_USE_POLLING_FILE_WATCHER: 1
+      MareSynchronos__DiscordOAuthClientId: '${DEV_MARE_DISCORD_OAUTH_CLIENT_ID}'
+      MareSynchronos__DiscordOAuthClientSecret: '${DEV_MARE_DISCORD_OAUTH_CLIENT_SECRET}'
     volumes:
       - ../config/standalone/authservice-standalone.json:/opt/MareSynchronosAuthService/appsettings.json
       - ../log/authservice-standalone/:/opt/MareSynchronosAuthService/logs/:rw
@@ -66,10 +76,11 @@ services:
     image: darkarchon/mare-synchronos-services:latest
     restart: on-failure
     environment:
-      MareSynchronos__DiscordBotToken: "${DEV_MARE_DISCORDTOKEN}"
-      MareSynchronos__DiscordChannelForMessages: "${DEV_MARE_DISCORDCHANNEL}"
-      MareSynchronos__DiscordChannelForReports: "${DEV_MARE_DISCORDCHANNEL}"
-      MareSynchronos__DiscordChannelForCommands: "${DEV_MARE_DISCORDCHANNEL}"
+      MareSynchronos__DiscordBotToken: '${DEV_MARE_DISCORDTOKEN}'
+      MareSynchronos__DiscordChannelForMessages: '${DEV_MARE_DISCORDCHANNEL}'
+      MareSynchronos__DiscordChannelForReports: '${DEV_MARE_DISCORDCHANNEL}'
+      MareSynchronos__DiscordChannelForCommands: '${DEV_MARE_DISCORDCHANNEL}'
+      DEV_MARE_JWT_SECRET: '${DEV_MARE_JWT_SECRET}'
       DOTNET_USE_POLLING_FILE_WATCHER: 1
     volumes:
       - ../config/standalone/services-standalone.json:/opt/MareSynchronosServices/appsettings.json
@@ -87,7 +98,7 @@ services:
       - 6200:6200/tcp
     restart: on-failure
     environment:
-      MareSynchronos__CdnFullUrl: "${DEV_MARE_CDNURL}"
+      MareSynchronos__CdnFullUrl: '${DEV_MARE_CDNURL}'
       DOTNET_USE_POLLING_FILE_WATCHER: 1
     volumes:
       - ../config/standalone/files-standalone.json:/opt/MareSynchronosStaticFilesServer/appsettings.json
