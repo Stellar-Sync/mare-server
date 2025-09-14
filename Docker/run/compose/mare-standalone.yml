@@ -24,10 +24,15 @@ services:
       [
         sh,
         -c,
-        'rm -f /data/dump.rdb && redis-server --save "" --appendonly no --requirepass secretredispassword',
+        'rm -f /data/dump.rdb && redis-server --save "" --appendonly no --requirepass secretredispassword --tcp-keepalive 60 --timeout 300',
       ]
     volumes:
       - cache:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', 'secretredispassword', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   mare-server:
     image: kasuaberra/mare-synchronos-server:latest
