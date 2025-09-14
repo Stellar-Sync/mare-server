@@ -1,6 +1,6 @@
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=/var/run/postgresql;Port=5432;Database=mare;Username=mare;Keepalive=15;Minimum Pool Size=10;Maximum Pool Size=50;No Reset On Close=true;Max Auto Prepare=50;Enlist=false"
+    "DefaultConnection": "Host=standalone-postgres-1;Port=5432;Database=mare;Username=mare;Password=secretdevpassword;Keepalive=15;Minimum Pool Size=10;Maximum Pool Size=50;No Reset On Close=true;Max Auto Prepare=50;Enlist=false"
   },
   "Logging": {
     "LogLevel": {
@@ -35,8 +35,8 @@
     "TempBanDurationInMinutes": 5,
     "Jwt": "teststringteststringteststringteststringteststringteststringteststringteststringteststringteststring",
     "WhitelistedIps": [""],
-    "RedisConnectionString": "redis,password=secretredispassword",
-    "CdnFullUrl": "http://localhost:6200",
+    "RedisConnectionString": "standalone-redis-1:6379,password=secretredispassword,abortConnect=false,connectRetry=3,connectTimeout=5000,syncTimeout=5000",
+    "CdnFullUrl": "http://standalone-mare-files-1:6200",
     "MaxExistingGroupsByUser": 6,
     "MaxJoinedGroupsByUser": 10,
     "MaxGroupUserCount": 100,

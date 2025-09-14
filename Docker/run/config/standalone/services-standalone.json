@@ -1,6 +1,6 @@
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=/var/run/postgresql;Port=5432;Database=mare;Username=mare;Keepalive=15;Minimum Pool Size=10;Maximum Pool Size=50;No Reset On Close=true;Max Auto Prepare=50;Enlist=false"
+    "DefaultConnection": "Host=standalone-postgres-1;Port=5432;Database=mare;Username=mare;Password=secretdevpassword;Keepalive=15;Minimum Pool Size=10;Maximum Pool Size=50;No Reset On Close=true;Max Auto Prepare=50;Enlist=false"
   },
   "Logging": {
     "LogLevel": {
@@ -28,14 +28,14 @@
     "DbContextPoolSize": 512,
     "ShardName": "Services",
     "MetricsPort": 6150,
-    "CdnFullUrl": "http://localhost:6200/",
-    "MainServerAddress": "http://mare-server:6000/",
-    "MainServerGrpcAddress": "http://mare-server:6005/",
+    "CdnFullUrl": "http://standalone-mare-files-1:6200/",
+    "MainServerAddress": "http://standalone-mare-server-1:6000/",
+    "MainServerGrpcAddress": "http://standalone-mare-server-1:6005/",
     "DiscordBotToken": "",
     "DiscordChannelForMessages": "",
     "DiscordChannelForCommands": "",
     "Jwt": "teststringteststringteststringteststringteststringteststringteststringteststringteststringteststring",
-    "RedisConnectionString": "redis,password=secretredispassword",
+    "RedisConnectionString": "standalone-redis-1:6379,password=secretredispassword",
     "VanityRoles": {
       "984484868241096724": "Main Developer",
       "1012008556259725398": "Patreon Subscriber"

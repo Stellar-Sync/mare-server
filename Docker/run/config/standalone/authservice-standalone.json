@@ -1,6 +1,6 @@
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=/var/run/postgresql;Port=5432;Database=mare;Username=mare;Keepalive=15;Minimum Pool Size=10;Maximum Pool Size=50;No Reset On Close=true;Max Auto Prepare=50;Enlist=false"
+    "DefaultConnection": "Host=standalone-postgres-1;Port=5432;Database=mare;Username=mare;Password=secretdevpassword;Keepalive=15;Minimum Pool Size=10;Maximum Pool Size=50;No Reset On Close=true;Max Auto Prepare=50;Enlist=false"
   },
   "Logging": {
     "LogLevel": {
@@ -29,11 +29,20 @@
     "ShardName": "AuthServices",
     "MetricsPort": 6150,
     "Jwt": "teststringteststringteststringteststringteststringteststringteststringteststringteststringteststring",
-    "RedisConnectionString": "redis,password=secretredispassword",
+    "RedisConnectionString": "standalone-redis-1:6379,password=secretredispassword",
     "FailedAuthForTempBan": 5,
     "UseGeoIP": false,
     "GeoIPDbCityFile": "",
-    "PublicOAuthBaseUri": "https://stellar2.kasu.network"
+    "PublicOAuthBaseUri": "http://localhost:8080",
+    "CdnFullUrl": "http://standalone-mare-files-1:6200/",
+    "ExpectedClientVersion": "0.9.0",
+    "MaxExistingGroupsByUser": 6,
+    "MaxGroupUserCount": 100,
+    "MaxJoinedGroupsByUser": 10,
+    "PurgeUnusedAccounts": false,
+    "PurgeUnusedAccountsPeriodInDays": 14,
+    "MaxCharaDataByUser": 10,
+    "MaxCharaDataByUserVanity": 50
   },
   "AllowedHosts": "*",
   "Kestrel": {},
