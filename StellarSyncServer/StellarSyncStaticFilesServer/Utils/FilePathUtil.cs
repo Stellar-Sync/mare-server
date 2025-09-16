@@ -1,4 +1,4 @@
-﻿namespace MareSynchronosStaticFilesServer.Utils;
+﻿namespace StellarSyncStaticFilesServer.Utils;
 
 public static partial class FilePathUtil
 {

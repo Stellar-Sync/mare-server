@@ -1,10 +1,10 @@
 using StellarSync.API.Routes;
-using MareSynchronosStaticFilesServer.Services;
+using StellarSyncStaticFilesServer.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MareSynchronosStaticFilesServer.Controllers;
+namespace StellarSyncStaticFilesServer.Controllers;
 
-[Route(MareFiles.Request)]
+[Route(StellarFiles.Request)]
 public class RequestController : ControllerBase
 {
     private readonly CachedFileProvider _cachedFileProvider;
@@ -17,19 +17,19 @@ public class RequestController : ControllerBase
     }
 
     [HttpGet]
-    [Route(MareFiles.Request_Cancel)]
+    [Route(StellarFiles.Request_Cancel)]
     public async Task<IActionResult> CancelQueueRequest(Guid requestId)
     {
         try
         {
-            _requestQueue.RemoveFromQueue(requestId, MareUser, IsPriority);
+            _requestQueue.RemoveFromQueue(requestId, StellarUser, IsPriority);
             return Ok();
         }
         catch (OperationCanceledException) { return BadRequest(); }
     }
 
     [HttpPost]
-    [Route(MareFiles.Request_Enqueue)]
+    [Route(StellarFiles.Request_Enqueue)]
     public async Task<IActionResult> PreRequestFilesAsync([FromBody] IEnumerable<string> files)
     {
         try
@@ -41,7 +41,7 @@ public class RequestController : ControllerBase
             }
 
             Guid g = Guid.NewGuid();
-            await _requestQueue.EnqueueUser(new(g, MareUser, files.ToList()), IsPriority, HttpContext.RequestAborted);
+            await _requestQueue.EnqueueUser(new(g, StellarUser, files.ToList()), IsPriority, HttpContext.RequestAborted);
 
             return Ok(g);
         }
@@ -49,13 +49,13 @@ public class RequestController : ControllerBase
     }
 
     [HttpGet]
-    [Route(MareFiles.Request_Check)]
+    [Route(StellarFiles.Request_Check)]
     public async Task<IActionResult> CheckQueueAsync(Guid requestId, [FromBody] IEnumerable<string> files)
     {
         try
         {
-            if (!_requestQueue.StillEnqueued(requestId, MareUser, IsPriority))
-                await _requestQueue.EnqueueUser(new(requestId, MareUser, files.ToList()), IsPriority, HttpContext.RequestAborted);
+            if (!_requestQueue.StillEnqueued(requestId, StellarUser, IsPriority))
+                await _requestQueue.EnqueueUser(new(requestId, StellarUser, files.ToList()), IsPriority, HttpContext.RequestAborted);
             return Ok();
         }
         catch (OperationCanceledException) { return BadRequest(); }

@@ -1,20 +1,20 @@
-using MareSynchronosShared.Metrics;
-using MareSynchronosShared.Services;
-using MareSynchronosStaticFilesServer.Utils;
+using StellarSyncShared.Metrics;
+using StellarSyncShared.Services;
+using StellarSyncStaticFilesServer.Utils;
 using System.Collections.Concurrent;
 using System.Net.Http.Headers;
-using MareSynchronosShared.Utils;
+using StellarSyncShared.Utils;
 using StellarSync.API.Routes;
-using MareSynchronosShared.Utils.Configuration;
+using StellarSyncShared.Utils.Configuration;
 
-namespace MareSynchronosStaticFilesServer.Services;
+namespace StellarSyncStaticFilesServer.Services;
 
 public sealed class CachedFileProvider : IDisposable
 {
     private readonly IConfigurationService<StaticFilesServerConfiguration> _configuration;
     private readonly ILogger<CachedFileProvider> _logger;
     private readonly FileStatisticsService _fileStatisticsService;
-    private readonly MareMetrics _metrics;
+    private readonly StellarMetrics _metrics;
     private readonly ServerTokenGenerator _generator;
     private readonly Uri _remoteCacheSourceUri;
     private readonly string _hotStoragePath;
@@ -27,7 +27,7 @@ public sealed class CachedFileProvider : IDisposable
     private bool _isDistributionServer;
 
     public CachedFileProvider(IConfigurationService<StaticFilesServerConfiguration> configuration, ILogger<CachedFileProvider> logger,
-        FileStatisticsService fileStatisticsService, MareMetrics metrics, ServerTokenGenerator generator)
+        FileStatisticsService fileStatisticsService, StellarMetrics metrics, ServerTokenGenerator generator)
     {
         _configuration = configuration;
         _logger = logger;
@@ -38,7 +38,7 @@ public sealed class CachedFileProvider : IDisposable
         _isDistributionServer = configuration.GetValueOrDefault(nameof(StaticFilesServerConfiguration.IsDistributionNode), false);
         _hotStoragePath = configuration.GetValue<string>(nameof(StaticFilesServerConfiguration.CacheDirectory));
         _httpClient = new();
-        _httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("MareSynchronosServer", "1.0.0.0"));
+        _httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("StellarSyncServer", "1.0.0.0"));
         _httpClient.Timeout = TimeSpan.FromSeconds(300);
     }
 
@@ -61,7 +61,7 @@ public sealed class CachedFileProvider : IDisposable
         if (TryCopyFromColdStorage(hash, destinationFilePath)) return;
 
         // if cold storage is not configured or file not found or error is present try to download file from remote
-        var downloadUrl = MareFiles.DistributionGetFullPath(_remoteCacheSourceUri, hash);
+        var downloadUrl = StellarFiles.DistributionGetFullPath(_remoteCacheSourceUri, hash);
         _logger.LogInformation("Did not find {hash}, downloading from {server}", hash, downloadUrl);
 
         using var requestMessage = new HttpRequestMessage(HttpMethod.Get, downloadUrl);

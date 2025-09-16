@@ -1,8 +1,8 @@
 ﻿using System.Text;
 
-namespace MareSynchronosShared.Utils.Configuration;
+namespace StellarSyncShared.Utils.Configuration;
 
-public class StaticFilesServerConfiguration : MareConfigurationBase
+public class StaticFilesServerConfiguration : StellarConfigurationBase
 {
     public bool IsDistributionNode { get; set; } = false;
     public Uri MainFileServerAddress { get; set; } = null;

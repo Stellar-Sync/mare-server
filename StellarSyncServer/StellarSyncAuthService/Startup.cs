@@ -1,25 +1,25 @@
-﻿using MareSynchronosAuthService.Controllers;
-using MareSynchronosShared.Metrics;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils;
+﻿using StellarSyncAuthService.Controllers;
+using StellarSyncShared.Metrics;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.System.Text.Json;
 using StackExchange.Redis;
 using System.Net;
-using MareSynchronosAuthService.Services;
-using MareSynchronosShared.RequirementHandlers;
+using StellarSyncAuthService.Services;
+using StellarSyncShared.RequirementHandlers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using MareSynchronosShared.Data;
+using StellarSyncShared.Data;
 using Microsoft.EntityFrameworkCore;
 using Prometheus;
-using MareSynchronosShared.Utils.Configuration;
+using StellarSyncShared.Utils.Configuration;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 
-namespace MareSynchronosAuthService;
+namespace StellarSyncAuthService;
 
 public class Startup
 {
@@ -34,7 +34,7 @@ public class Startup
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
     {
-        var config = app.ApplicationServices.GetRequiredService<IConfigurationService<MareConfigurationBase>>();
+        var config = app.ApplicationServices.GetRequiredService<IConfigurationService<StellarConfigurationBase>>();
 
         app.UseRouting();
 
@@ -43,7 +43,7 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
 
-        KestrelMetricServer metricServer = new KestrelMetricServer(config.GetValueOrDefault<int>(nameof(MareConfigurationBase.MetricsPort), 4985));
+        KestrelMetricServer metricServer = new KestrelMetricServer(config.GetValueOrDefault<int>(nameof(StellarConfigurationBase.MetricsPort), 4985));
         metricServer.Start();
 
         app.UseEndpoints(endpoints =>
@@ -60,25 +60,25 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        var mareConfig = _configuration.GetRequiredSection("MareSynchronos");
+        var stellarConfig = _configuration.GetRequiredSection("StellarSync");
 
         services.AddHttpContextAccessor();
 
-        ConfigureRedis(services, mareConfig);
+        ConfigureRedis(services, stellarConfig);
 
         services.AddSingleton<SecretKeyAuthenticatorService>();
         services.AddSingleton<GeoIPService>();
 
         services.AddHostedService(provider => provider.GetRequiredService<GeoIPService>());
 
-        services.Configure<AuthServiceConfiguration>(_configuration.GetRequiredSection("MareSynchronos"));
-        services.Configure<MareConfigurationBase>(_configuration.GetRequiredSection("MareSynchronos"));
+        services.Configure<AuthServiceConfiguration>(_configuration.GetRequiredSection("StellarSync"));
+        services.Configure<StellarConfigurationBase>(_configuration.GetRequiredSection("StellarSync"));
 
         services.AddSingleton<ServerTokenGenerator>();
 
         ConfigureAuthorization(services);
 
-        ConfigureDatabase(services, mareConfig);
+        ConfigureDatabase(services, stellarConfig);
 
         ConfigureConfigServices(services);
 
@@ -99,7 +99,7 @@ public class Startup
         services.AddTransient<IAuthorizationHandler, ExistingUserRequirementHandler>();
 
         services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
-            .Configure<IConfigurationService<MareConfigurationBase>>((options, config) =>
+            .Configure<IConfigurationService<StellarConfigurationBase>>((options, config) =>
             {
                 options.TokenValidationParameters = new()
                 {
@@ -107,7 +107,7 @@ public class Startup
                     ValidateLifetime = true,
                     ValidateAudience = false,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(config.GetValue<string>(nameof(MareConfigurationBase.Jwt)))),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(config.GetValue<string>(nameof(StellarConfigurationBase.Jwt)))),
                 };
             });
 
@@ -128,7 +128,7 @@ public class Startup
                 policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
                 policy.AddRequirements(new ValidTokenRequirement());
                 policy.AddRequirements(new ExistingUserRequirement());
-                policy.RequireClaim(MareClaimTypes.OAuthLoginToken, "True");
+                policy.RequireClaim(StellarClaimTypes.OAuthLoginToken, "True");
             });
             options.AddPolicy("Authenticated", policy =>
             {
@@ -153,13 +153,13 @@ public class Startup
                 policy.AddRequirements(new UserRequirement(UserRequirements.Identified | UserRequirements.Moderator | UserRequirements.Administrator));
                 policy.AddRequirements(new ValidTokenRequirement());
             });
-            options.AddPolicy("Internal", new AuthorizationPolicyBuilder().RequireClaim(MareClaimTypes.Internal, "true").Build());
+            options.AddPolicy("Internal", new AuthorizationPolicyBuilder().RequireClaim(StellarClaimTypes.Internal, "true").Build());
         });
     }
 
     private static void ConfigureMetrics(IServiceCollection services)
     {
-        services.AddSingleton<MareMetrics>(m => new MareMetrics(m.GetService<ILogger<MareMetrics>>(), new List<string>
+        services.AddSingleton<StellarMetrics>(m => new StellarMetrics(m.GetService<ILogger<StellarMetrics>>(), new List<string>
         {
             MetricsAPI.CounterAuthenticationCacheHits,
             MetricsAPI.CounterAuthenticationFailures,
@@ -171,10 +171,10 @@ public class Startup
         }));
     }
 
-    private void ConfigureRedis(IServiceCollection services, IConfigurationSection mareConfig)
+    private void ConfigureRedis(IServiceCollection services, IConfigurationSection stellarConfig)
     {
         // configure redis for SignalR
-        var redisConnection = mareConfig.GetValue(nameof(ServerConfiguration.RedisConnectionString), string.Empty);
+        var redisConnection = stellarConfig.GetValue(nameof(ServerConfiguration.RedisConnectionString), string.Empty);
         var options = ConfigurationOptions.Parse(redisConnection);
 
         var endpoint = options.EndPoints[0];
@@ -204,7 +204,7 @@ public class Startup
                 UnreachableServerAction = ServerEnumerationStrategy.UnreachableServerActionOptions.Throw,
             },
             MaxValueLength = 1024,
-            PoolSize = mareConfig.GetValue(nameof(ServerConfiguration.RedisPool), 50),
+            PoolSize = stellarConfig.GetValue(nameof(ServerConfiguration.RedisPool), 50),
             SyncTimeout = options.SyncTimeout,
         };*/
 
@@ -216,27 +216,27 @@ public class Startup
     }
     private void ConfigureConfigServices(IServiceCollection services)
     {
-        services.AddSingleton<IConfigurationService<AuthServiceConfiguration>, MareConfigurationServiceServer<AuthServiceConfiguration>>();
-        services.AddSingleton<IConfigurationService<MareConfigurationBase>, MareConfigurationServiceServer<MareConfigurationBase>>();
+        services.AddSingleton<IConfigurationService<AuthServiceConfiguration>, StellarConfigurationServiceServer<AuthServiceConfiguration>>();
+        services.AddSingleton<IConfigurationService<StellarConfigurationBase>, StellarConfigurationServiceServer<StellarConfigurationBase>>();
     }
 
-    private void ConfigureDatabase(IServiceCollection services, IConfigurationSection mareConfig)
+    private void ConfigureDatabase(IServiceCollection services, IConfigurationSection stellarConfig)
     {
-        services.AddDbContextPool<MareDbContext>(options =>
+        services.AddDbContextPool<StellarDbContext>(options =>
         {
             options.UseNpgsql(_configuration.GetConnectionString("DefaultConnection"), builder =>
             {
                 builder.MigrationsHistoryTable("_efmigrationshistory", "public");
-                builder.MigrationsAssembly("MareSynchronosShared");
+                builder.MigrationsAssembly("StellarSyncShared");
             }).UseSnakeCaseNamingConvention();
             options.EnableThreadSafetyChecks(false);
-        }, mareConfig.GetValue(nameof(MareConfigurationBase.DbContextPoolSize), 1024));
-        services.AddDbContextFactory<MareDbContext>(options =>
+        }, stellarConfig.GetValue(nameof(StellarConfigurationBase.DbContextPoolSize), 1024));
+        services.AddDbContextFactory<StellarDbContext>(options =>
         {
             options.UseNpgsql(_configuration.GetConnectionString("DefaultConnection"), builder =>
             {
                 builder.MigrationsHistoryTable("_efmigrationshistory", "public");
-                builder.MigrationsAssembly("MareSynchronosShared");
+                builder.MigrationsAssembly("StellarSyncShared");
             }).UseSnakeCaseNamingConvention();
             options.EnableThreadSafetyChecks(false);
         });

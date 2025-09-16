@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace MareSynchronosServer.Migrations
+namespace StellarSyncServer.Migrations
 {
     public partial class AddAlias : Migration
     {

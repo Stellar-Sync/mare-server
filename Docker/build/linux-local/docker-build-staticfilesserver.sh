@@ -1,4 +1,4 @@
 #!/bin/sh
 cd ../../../
-docker build -t kasuaberra/mare-synchronos-staticfilesserver:latest . -f ../Dockerfile-MareSynchronosStaticFilesServer --no-cache --pull --force-rm
+docker build -t kasuaberra/stellar-sync-staticfilesserver:latest . -f ../Dockerfile-StellarSyncStaticFilesServer --no-cache --pull --force-rm
 cd Docker/build/linux-local

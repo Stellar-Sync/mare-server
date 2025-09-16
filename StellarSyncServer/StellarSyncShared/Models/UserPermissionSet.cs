@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace MareSynchronosShared.Models;
+namespace StellarSyncShared.Models;
 
 public class UserPermissionSet
 {

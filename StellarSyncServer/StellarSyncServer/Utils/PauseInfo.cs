@@ -1,4 +1,4 @@
-﻿namespace MareSynchronosServer.Utils;
+﻿namespace StellarSyncServer.Utils;
 
 public enum PauseInfo
 {

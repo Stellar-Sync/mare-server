@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using MareSynchronosServices.Discord;
+using StellarSyncServices.Discord;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
@@ -11,7 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MareSynchronosServerTest.Discord {
+namespace StellarSyncServerTest.Discord {
     public class DiscordBotTest {
 
         [Test]

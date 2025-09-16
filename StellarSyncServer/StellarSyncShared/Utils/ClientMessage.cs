@@ -1,4 +1,4 @@
 ﻿using StellarSync.API.Data.Enum;
 
-namespace MareSynchronosShared.Utils;
+namespace StellarSyncShared.Utils;
 public record ClientMessage(MessageSeverity Severity, string Message, string UID);

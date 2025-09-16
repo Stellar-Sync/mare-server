@@ -1,10 +1,10 @@
 using StellarSync.API.Routes;
-using MareSynchronosAuthService.Services;
-using MareSynchronosShared;
-using MareSynchronosShared.Data;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils;
-using MareSynchronosShared.Utils.Configuration;
+using StellarSyncAuthService.Services;
+using StellarSyncShared;
+using StellarSyncShared.Data;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils;
+using StellarSyncShared.Utils.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,9 +16,9 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Web;
 
-namespace MareSynchronosAuthService.Controllers;
+namespace StellarSyncAuthService.Controllers;
 
-[Route(MareAuth.OAuth)]
+[Route(StellarAuth.OAuth)]
 public class OAuthController : AuthControllerBase
 {
     private const string _discordOAuthCall = "discordCall";
@@ -26,11 +26,11 @@ public class OAuthController : AuthControllerBase
     private static readonly ConcurrentDictionary<string, string> _cookieOAuthResponse = [];
 
     public OAuthController(ILogger<OAuthController> logger,
-    IHttpContextAccessor accessor, IDbContextFactory<MareDbContext> mareDbContext,
+    IHttpContextAccessor accessor, IDbContextFactory<StellarDbContext> stellarDbContext,
     SecretKeyAuthenticatorService secretKeyAuthenticatorService,
     IConfigurationService<AuthServiceConfiguration> configuration,
     IDatabase redisDb, GeoIPService geoIPProvider)
-        : base(logger, accessor, mareDbContext, secretKeyAuthenticatorService,
+        : base(logger, accessor, stellarDbContext, secretKeyAuthenticatorService,
             configuration, redisDb, geoIPProvider)
     {
     }
@@ -142,25 +142,25 @@ public class OAuthController : AuthControllerBase
         if (discordUserId == 0)
             return BadRequest("Failed to get Discord ID from login token");
 
-        using var dbContext = await MareDbContextFactory.CreateDbContextAsync();
+        using var dbContext = await StellarDbContextFactory.CreateDbContextAsync();
 
-        var mareUser = await dbContext.LodeStoneAuth.Include(u => u.User).SingleOrDefaultAsync(u => u.DiscordId == discordUserId);
-        if (mareUser == default)
+        var stellarUser = await dbContext.LodeStoneAuth.Include(u => u.User).SingleOrDefaultAsync(u => u.DiscordId == discordUserId);
+        if (stellarUser == default)
         {
-            Logger.LogDebug("Failed to get Mare user for {session}, DiscordId: {id}", reqId, discordUserId);
+            Logger.LogDebug("Failed to get Stellar user for {session}, DiscordId: {id}", reqId, discordUserId);
 
-            return BadRequest("Could not find a Mare user associated to this Discord account.");
+            return BadRequest("Could not find a Stellar user associated to this Discord account.");
         }
 
         JwtSecurityToken? jwt = null;
         try
         {
             jwt = CreateJwt([
-                new Claim(MareClaimTypes.Uid, mareUser.User!.UID),
-                new Claim(MareClaimTypes.Expires, DateTime.UtcNow.AddDays(14).Ticks.ToString(CultureInfo.InvariantCulture)),
-                new Claim(MareClaimTypes.DiscordId, discordUserId.ToString()),
-                new Claim(MareClaimTypes.DiscordUser, discordUserName),
-                new Claim(MareClaimTypes.OAuthLoginToken, true.ToString())
+                new Claim(StellarClaimTypes.Uid, stellarUser.User!.UID),
+                new Claim(StellarClaimTypes.Expires, DateTime.UtcNow.AddDays(14).Ticks.ToString(CultureInfo.InvariantCulture)),
+                new Claim(StellarClaimTypes.DiscordId, discordUserId.ToString()),
+                new Claim(StellarClaimTypes.DiscordUser, discordUserName),
+                new Claim(StellarClaimTypes.OAuthLoginToken, true.ToString())
             ]);
         }
         catch (Exception ex)
@@ -191,13 +191,13 @@ public class OAuthController : AuthControllerBase
     }
 
     [Authorize(Policy = "OAuthToken")]
-    [HttpPost(MareAuth.OAuth_GetUIDsBasedOnSecretKeys)]
+    [HttpPost(StellarAuth.OAuth_GetUIDsBasedOnSecretKeys)]
     public async Task<Dictionary<string, string>> GetUIDsBasedOnSecretKeys([FromBody] List<string> secretKeys)
     {
         if (!secretKeys.Any())
             return [];
 
-        using var dbContext = await MareDbContextFactory.CreateDbContextAsync();
+        using var dbContext = await StellarDbContextFactory.CreateDbContextAsync();
 
         Dictionary<string, string> secretKeysToUIDDict = secretKeys.Distinct().ToDictionary(k => k, _ => string.Empty, StringComparer.Ordinal);
         foreach (var key in secretKeys)
@@ -214,16 +214,16 @@ public class OAuthController : AuthControllerBase
     }
 
     [Authorize(Policy = "OAuthToken")]
-    [HttpPost(MareAuth.OAuth_RenewOAuthToken)]
+    [HttpPost(StellarAuth.OAuth_RenewOAuthToken)]
     public IActionResult RenewOAuthToken()
     {
-        var claims = HttpContext.User.Claims.Where(c => c.Type != MareClaimTypes.Expires).ToList();
-        claims.Add(new Claim(MareClaimTypes.Expires, DateTime.UtcNow.AddDays(14).Ticks.ToString(CultureInfo.InvariantCulture)));
+        var claims = HttpContext.User.Claims.Where(c => c.Type != StellarClaimTypes.Expires).ToList();
+        claims.Add(new Claim(StellarClaimTypes.Expires, DateTime.UtcNow.AddDays(14).Ticks.ToString(CultureInfo.InvariantCulture)));
         return Content(CreateJwt(claims).RawData);
     }
 
     [AllowAnonymous]
-    [HttpGet(MareAuth.OAuth_GetDiscordOAuthToken)]
+    [HttpGet(StellarAuth.OAuth_GetDiscordOAuthToken)]
     public async Task<IActionResult> GetDiscordOAuthToken([FromQuery] string sessionId)
     {
         Logger.LogDebug("Starting to wait for GetDiscordOAuthToken for {session}", sessionId);
@@ -249,7 +249,7 @@ public class OAuthController : AuthControllerBase
     }
 
     [AllowAnonymous]
-    [HttpGet(MareAuth.OAuth_GetDiscordOAuthEndpoint)]
+    [HttpGet(StellarAuth.OAuth_GetDiscordOAuthEndpoint)]
     public Uri? GetDiscordOAuthEndpoint()
     {
         var discordOAuthUri = Configuration.GetValueOrDefault<Uri?>(nameof(AuthServiceConfiguration.PublicOAuthBaseUri), null);
@@ -261,34 +261,34 @@ public class OAuthController : AuthControllerBase
     }
 
     [Authorize(Policy = "OAuthToken")]
-    [HttpGet(MareAuth.OAuth_GetUIDs)]
+    [HttpGet(StellarAuth.OAuth_GetUIDs)]
     public async Task<Dictionary<string, string>> GetAvailableUIDs()
     {
-        string primaryUid = HttpContext.User.Claims.Single(c => string.Equals(c.Type, MareClaimTypes.Uid, StringComparison.Ordinal))!.Value;
-        using var dbContext = await MareDbContextFactory.CreateDbContextAsync();
+        string primaryUid = HttpContext.User.Claims.Single(c => string.Equals(c.Type, StellarClaimTypes.Uid, StringComparison.Ordinal))!.Value;
+        using var dbContext = await StellarDbContextFactory.CreateDbContextAsync();
 
-        var mareUser = await dbContext.Auth.AsNoTracking().Include(u => u.User).FirstOrDefaultAsync(f => f.UserUID == primaryUid).ConfigureAwait(false);
-        if (mareUser == null || mareUser.User == null) return [];
-        var uid = mareUser.User.UID;
+        var stellarUser = await dbContext.Auth.AsNoTracking().Include(u => u.User).FirstOrDefaultAsync(f => f.UserUID == primaryUid).ConfigureAwait(false);
+        if (stellarUser == null || stellarUser.User == null) return [];
+        var uid = stellarUser.User.UID;
         var allUids = await dbContext.Auth.AsNoTracking().Include(u => u.User).Where(a => a.UserUID == uid || a.PrimaryUserUID == uid).ToListAsync().ConfigureAwait(false);
         var result = allUids.OrderBy(u => u.UserUID == uid ? 0 : 1).ThenBy(u => u.UserUID).Select(u => (u.UserUID, u.User.Alias)).ToDictionary();
         return result;
     }
 
     [Authorize(Policy = "OAuthToken")]
-    [HttpPost(MareAuth.OAuth_CreateOAuth)]
+    [HttpPost(StellarAuth.OAuth_CreateOAuth)]
     public async Task<IActionResult> CreateTokenWithOAuth(string uid, string charaIdent)
     {
-        using var dbContext = await MareDbContextFactory.CreateDbContextAsync();
+        using var dbContext = await StellarDbContextFactory.CreateDbContextAsync();
 
         return await AuthenticateOAuthInternal(dbContext, uid, charaIdent);
     }
 
-    private async Task<IActionResult> AuthenticateOAuthInternal(MareDbContext dbContext, string requestedUid, string charaIdent)
+    private async Task<IActionResult> AuthenticateOAuthInternal(StellarDbContext dbContext, string requestedUid, string charaIdent)
     {
         try
         {
-            string primaryUid = HttpContext.User.Claims.Single(c => string.Equals(c.Type, MareClaimTypes.Uid, StringComparison.Ordinal))!.Value;
+            string primaryUid = HttpContext.User.Claims.Single(c => string.Equals(c.Type, StellarClaimTypes.Uid, StringComparison.Ordinal))!.Value;
             if (string.IsNullOrEmpty(requestedUid)) return BadRequest("No UID");
             if (string.IsNullOrEmpty(charaIdent)) return BadRequest("No CharaIdent");
 

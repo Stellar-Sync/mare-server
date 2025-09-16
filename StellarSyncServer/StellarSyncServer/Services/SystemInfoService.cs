@@ -1,30 +1,30 @@
 using StellarSync.API.Dto;
 using StellarSync.API.SignalR;
-using MareSynchronosServer.Hubs;
-using MareSynchronosShared.Data;
-using MareSynchronosShared.Metrics;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils.Configuration;
+using StellarSyncServer.Hubs;
+using StellarSyncShared.Data;
+using StellarSyncShared.Metrics;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils.Configuration;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 
-namespace MareSynchronosServer.Services;
+namespace StellarSyncServer.Services;
 
 public sealed class SystemInfoService : BackgroundService
 {
-    private readonly MareMetrics _mareMetrics;
+    private readonly StellarMetrics _stellarMetrics;
     private readonly IConfigurationService<ServerConfiguration> _config;
-    private readonly IDbContextFactory<MareDbContext> _dbContextFactory;
+    private readonly IDbContextFactory<StellarDbContext> _dbContextFactory;
     private readonly ILogger<SystemInfoService> _logger;
-    private readonly IHubContext<MareHub, IMareHub> _hubContext;
+    private readonly IHubContext<StellarHub, IStellarHub> _hubContext;
     private readonly IRedisDatabase _redis;
     public SystemInfoDto SystemInfoDto { get; private set; } = new();
 
-    public SystemInfoService(MareMetrics mareMetrics, IConfigurationService<ServerConfiguration> configurationService, IDbContextFactory<MareDbContext> dbContextFactory,
-        ILogger<SystemInfoService> logger, IHubContext<MareHub, IMareHub> hubContext, IRedisDatabase redisDb)
+    public SystemInfoService(StellarMetrics stellarMetrics, IConfigurationService<ServerConfiguration> configurationService, IDbContextFactory<StellarDbContext> dbContextFactory,
+        ILogger<SystemInfoService> logger, IHubContext<StellarHub, IStellarHub> hubContext, IRedisDatabase redisDb)
     {
-        _mareMetrics = mareMetrics;
+        _stellarMetrics = stellarMetrics;
         _config = configurationService;
         _dbContextFactory = dbContextFactory;
         _logger = logger;
@@ -48,8 +48,8 @@ public sealed class SystemInfoService : BackgroundService
             {
                 ThreadPool.GetAvailableThreads(out int workerThreads, out int ioThreads);
 
-                _mareMetrics.SetGaugeTo(MetricsAPI.GaugeAvailableWorkerThreads, workerThreads);
-                _mareMetrics.SetGaugeTo(MetricsAPI.GaugeAvailableIOWorkerThreads, ioThreads);
+                _stellarMetrics.SetGaugeTo(MetricsAPI.GaugeAvailableWorkerThreads, workerThreads);
+                _stellarMetrics.SetGaugeTo(MetricsAPI.GaugeAvailableIOWorkerThreads, ioThreads);
 
                 var onlineUsers = (_redis.SearchKeysAsync("UID:*").GetAwaiter().GetResult()).Count();
                 SystemInfoDto = new SystemInfoDto()
@@ -65,12 +65,12 @@ public sealed class SystemInfoService : BackgroundService
 
                     using var db = await _dbContextFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
 
-                    _mareMetrics.SetGaugeTo(MetricsAPI.GaugeAuthorizedConnections, onlineUsers);
-                    _mareMetrics.SetGaugeTo(MetricsAPI.GaugePairs, db.ClientPairs.AsNoTracking().Count());
-                    _mareMetrics.SetGaugeTo(MetricsAPI.GaugePairsPaused, db.Permissions.AsNoTracking().Where(p => p.IsPaused).Count());
-                    _mareMetrics.SetGaugeTo(MetricsAPI.GaugeGroups, db.Groups.AsNoTracking().Count());
-                    _mareMetrics.SetGaugeTo(MetricsAPI.GaugeGroupPairs, db.GroupPairs.AsNoTracking().Count());
-                    _mareMetrics.SetGaugeTo(MetricsAPI.GaugeUsersRegistered, db.Users.AsNoTracking().Count());
+                    _stellarMetrics.SetGaugeTo(MetricsAPI.GaugeAuthorizedConnections, onlineUsers);
+                    _stellarMetrics.SetGaugeTo(MetricsAPI.GaugePairs, db.ClientPairs.AsNoTracking().Count());
+                    _stellarMetrics.SetGaugeTo(MetricsAPI.GaugePairsPaused, db.Permissions.AsNoTracking().Where(p => p.IsPaused).Count());
+                    _stellarMetrics.SetGaugeTo(MetricsAPI.GaugeGroups, db.Groups.AsNoTracking().Count());
+                    _stellarMetrics.SetGaugeTo(MetricsAPI.GaugeGroupPairs, db.GroupPairs.AsNoTracking().Count());
+                    _stellarMetrics.SetGaugeTo(MetricsAPI.GaugeUsersRegistered, db.Users.AsNoTracking().Count());
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(timeOut), ct).ConfigureAwait(false);

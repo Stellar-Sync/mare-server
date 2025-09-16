@@ -1,13 +1,13 @@
-﻿using MareSynchronosShared.Data;
-using MareSynchronosShared.Models;
+﻿using StellarSyncShared.Data;
+using StellarSyncShared.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace MareSynchronosShared.Utils;
+namespace StellarSyncShared.Utils;
 
 public static class SharedDbFunctions
 {
-    public static async Task<(bool, string)> MigrateOrDeleteGroup(MareDbContext context, Group group, List<GroupPair> groupPairs, int maxGroupsByUser)
+    public static async Task<(bool, string)> MigrateOrDeleteGroup(StellarDbContext context, Group group, List<GroupPair> groupPairs, int maxGroupsByUser)
     {
         bool groupHasMigrated = false;
         string newOwner = string.Empty;
@@ -33,7 +33,7 @@ public static class SharedDbFunctions
         return (groupHasMigrated, newOwner);
     }
 
-    public static async Task PurgeUser(ILogger _logger, User user, MareDbContext dbContext, int maxGroupsByUser)
+    public static async Task PurgeUser(ILogger _logger, User user, StellarDbContext dbContext, int maxGroupsByUser)
     {
         _logger.LogInformation("Purging user: {uid}", user.UID);
 
@@ -114,7 +114,7 @@ public static class SharedDbFunctions
         await dbContext.SaveChangesAsync().ConfigureAwait(false);
     }
 
-    private static async Task<bool> TryMigrateGroup(MareDbContext context, Group group, string potentialNewOwnerUid, int maxGroupsByUser)
+    private static async Task<bool> TryMigrateGroup(StellarDbContext context, Group group, string potentialNewOwnerUid, int maxGroupsByUser)
     {
         var newOwnerOwnedGroups = await context.Groups.CountAsync(g => g.OwnerUID == potentialNewOwnerUid).ConfigureAwait(false);
         if (newOwnerOwnedGroups >= maxGroupsByUser)

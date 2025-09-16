@@ -1,4 +1,4 @@
-﻿using MareSynchronosShared.Utils.Configuration;
+﻿using StellarSyncShared.Utils.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -7,11 +7,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace MareSynchronosShared.Utils;
+namespace StellarSyncShared.Utils;
 
 public class ServerTokenGenerator
 {
-    private readonly IOptionsMonitor<MareConfigurationBase> _configuration;
+    private readonly IOptionsMonitor<StellarConfigurationBase> _configuration;
     private readonly ILogger<ServerTokenGenerator> _logger;
 
     private Dictionary<string, string> _tokenDictionary { get; set; } = new(StringComparer.Ordinal);
@@ -29,7 +29,7 @@ public class ServerTokenGenerator
         }
     }
 
-    public ServerTokenGenerator(IOptionsMonitor<MareConfigurationBase> configuration, ILogger<ServerTokenGenerator> logger)
+    public ServerTokenGenerator(IOptionsMonitor<StellarConfigurationBase> configuration, ILogger<ServerTokenGenerator> logger)
     {
         _configuration = configuration;
         _logger = logger;
@@ -44,9 +44,9 @@ public class ServerTokenGenerator
         {
             Subject = new ClaimsIdentity(new List<Claim>()
             {
-                new Claim(MareClaimTypes.Uid, _configuration.CurrentValue.ShardName),
-                new Claim(MareClaimTypes.Internal, "true"),
-                new Claim(MareClaimTypes.Expires, DateTime.Now.AddYears(1).Ticks.ToString(CultureInfo.InvariantCulture))
+                new Claim(StellarClaimTypes.Uid, _configuration.CurrentValue.ShardName),
+                new Claim(StellarClaimTypes.Internal, "true"),
+                new Claim(StellarClaimTypes.Expires, DateTime.Now.AddYears(1).Ticks.ToString(CultureInfo.InvariantCulture))
             }),
             SigningCredentials = new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256Signature),
             Expires = DateTime.Now.AddYears(1)

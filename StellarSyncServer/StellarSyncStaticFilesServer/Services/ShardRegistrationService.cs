@@ -1,9 +1,9 @@
 ﻿using StellarSync.API.Routes;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils;
-using MareSynchronosShared.Utils.Configuration;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils;
+using StellarSyncShared.Utils.Configuration;
 
-namespace MareSynchronosStaticFilesServer.Services;
+namespace StellarSyncStaticFilesServer.Services;
 
 public class ShardRegistrationService : IHostedService
 {
@@ -80,7 +80,7 @@ public class ShardRegistrationService : IHostedService
         Uri mainServer = _configurationService.GetValue<Uri>(nameof(StaticFilesServerConfiguration.MainFileServerAddress));
         _logger.LogInformation("Running heartbeat against Main {server}", mainServer);
 
-        using var heartBeat = await _httpClient.PostAsync(new Uri(mainServer, MareFiles.Main + "/shardHeartbeat"), null, ct).ConfigureAwait(false);
+        using var heartBeat = await _httpClient.PostAsync(new Uri(mainServer, StellarFiles.Main + "/shardHeartbeat"), null, ct).ConfigureAwait(false);
         heartBeat.EnsureSuccessStatusCode();
     }
 
@@ -93,7 +93,7 @@ public class ShardRegistrationService : IHostedService
         _logger.LogInformation("Config Value {varName}: {value}", nameof(ShardConfiguration.FileMatch), config.FileMatch);
         _logger.LogInformation("Config Value {varName}: {value}", nameof(ShardConfiguration.RegionUris), string.Join("; ", config.RegionUris.Select(k => k.Key + ":" + k.Value)));
 
-        using var register = await _httpClient.PostAsJsonAsync(new Uri(mainServer, MareFiles.Main + "/shardRegister"), config, ct).ConfigureAwait(false);
+        using var register = await _httpClient.PostAsJsonAsync(new Uri(mainServer, StellarFiles.Main + "/shardRegister"), config, ct).ConfigureAwait(false);
         register.EnsureSuccessStatusCode();
         _isRegistered = true;
     }
@@ -102,6 +102,6 @@ public class ShardRegistrationService : IHostedService
     {
         Uri mainServer = _configurationService.GetValue<Uri>(nameof(StaticFilesServerConfiguration.MainFileServerAddress));
         _logger.LogInformation("Unregistering Shard with Main {server}", mainServer);
-        using var heartBeat = await _httpClient.PostAsync(new Uri(mainServer, MareFiles.Main + "/shardUnregister"), null).ConfigureAwait(false);
+        using var heartBeat = await _httpClient.PostAsync(new Uri(mainServer, StellarFiles.Main + "/shardUnregister"), null).ConfigureAwait(false);
     }
 }

@@ -1,13 +1,13 @@
 using StellarSync.API.Routes;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils;
-using MareSynchronosShared.Utils.Configuration;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils;
+using StellarSyncShared.Utils.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace MareSynchronosStaticFilesServer.Controllers;
+namespace StellarSyncStaticFilesServer.Controllers;
 
-[Route(MareFiles.Speedtest)]
+[Route(StellarFiles.Speedtest)]
 public class SpeedTestController : ControllerBase
 {
     private readonly IMemoryCache _memoryCache;
@@ -22,10 +22,10 @@ public class SpeedTestController : ControllerBase
         _configurationService = configurationService;
     }
 
-    [HttpGet(MareFiles.Speedtest_Run)]
+    [HttpGet(StellarFiles.Speedtest_Run)]
     public async Task<IActionResult> DownloadTest(CancellationToken cancellationToken)
     {
-        var user = HttpContext.User.Claims.First(f => string.Equals(f.Type, MareClaimTypes.Uid, StringComparison.Ordinal)).Value;
+        var user = HttpContext.User.Claims.First(f => string.Equals(f.Type, StellarClaimTypes.Uid, StringComparison.Ordinal)).Value;
         var speedtestLimit = _configurationService.GetValueOrDefault(nameof(StaticFilesServerConfiguration.SpeedTestHoursRateLimit), 0.5);
         if (_memoryCache.TryGetValue<DateTime>(user, out var value))
         {

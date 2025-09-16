@@ -1,4 +1,4 @@
-﻿namespace MareSynchronosShared.RequirementHandlers;
+﻿namespace StellarSyncShared.RequirementHandlers;
 
 public enum UserRequirements
 {

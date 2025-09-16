@@ -1,10 +1,10 @@
 using StellarSync.API.Routes;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils;
-using MareSynchronosShared.Utils.Configuration;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils;
+using StellarSyncShared.Utils.Configuration;
 using System.Net.Http.Headers;
 
-namespace MareSynchronosStaticFilesServer.Services;
+namespace StellarSyncStaticFilesServer.Services;
 
 public class ShardClientReadyMessageService : IClientReadyMessageService
 {
@@ -19,13 +19,13 @@ public class ShardClientReadyMessageService : IClientReadyMessageService
         _tokenGenerator = tokenGenerator;
         _configurationService = configurationService;
         _httpClient = new();
-        _httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("MareSynchronosServer", "1.0.0.0"));
+        _httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("StellarSyncServer", "1.0.0.0"));
     }
 
     public async Task SendDownloadReady(string uid, Guid requestId)
     {
         var mainUrl = _configurationService.GetValue<Uri>(nameof(StaticFilesServerConfiguration.MainFileServerAddress));
-        var path = MareFiles.MainSendReadyFullPath(mainUrl, uid, requestId);
+        var path = StellarFiles.MainSendReadyFullPath(mainUrl, uid, requestId);
         using HttpRequestMessage msg = new()
         {
             RequestUri = path

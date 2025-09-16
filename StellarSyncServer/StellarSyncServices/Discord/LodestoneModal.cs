@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.Interactions;
 
-namespace MareSynchronosServices.Discord;
+namespace StellarSyncServices.Discord;
 
 // todo: remove all this crap at some point
 

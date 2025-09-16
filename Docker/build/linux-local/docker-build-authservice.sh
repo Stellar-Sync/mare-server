@@ -1,2 +1,2 @@
 #!/bin/sh
-docker build -t kasuaberra/mare-synchronos-authservice:latest . -f ../Dockerfile-MareSynchronosAuthService --no-cache --pull --force-rm
+docker build -t kasuaberra/stellar-sync-authservice:latest . -f ../Dockerfile-StellarSyncAuthService --no-cache --pull --force-rm

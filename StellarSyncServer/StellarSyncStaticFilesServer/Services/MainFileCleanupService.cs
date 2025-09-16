@@ -1,26 +1,26 @@
 ﻿using ByteSizeLib;
 using K4os.Compression.LZ4.Legacy;
-using MareSynchronosShared.Data;
-using MareSynchronosShared.Metrics;
-using MareSynchronosShared.Models;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils.Configuration;
-using MareSynchronosStaticFilesServer.Utils;
+using StellarSyncShared.Data;
+using StellarSyncShared.Metrics;
+using StellarSyncShared.Models;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils.Configuration;
+using StellarSyncStaticFilesServer.Utils;
 using Microsoft.EntityFrameworkCore;
 
-namespace MareSynchronosStaticFilesServer.Services;
+namespace StellarSyncStaticFilesServer.Services;
 
 public class MainFileCleanupService : IHostedService
 {
     private readonly IConfigurationService<StaticFilesServerConfiguration> _configuration;
-    private readonly IDbContextFactory<MareDbContext> _dbContextFactory;
+    private readonly IDbContextFactory<StellarDbContext> _dbContextFactory;
     private readonly ILogger<MainFileCleanupService> _logger;
-    private readonly MareMetrics _metrics;
+    private readonly StellarMetrics _metrics;
     private CancellationTokenSource _cleanupCts;
 
-    public MainFileCleanupService(MareMetrics metrics, ILogger<MainFileCleanupService> logger,
+    public MainFileCleanupService(StellarMetrics metrics, ILogger<MainFileCleanupService> logger,
         IConfigurationService<StaticFilesServerConfiguration> configuration,
-        IDbContextFactory<MareDbContext> dbContextFactory)
+        IDbContextFactory<StellarDbContext> dbContextFactory)
     {
         _metrics = metrics;
         _logger = logger;
@@ -46,7 +46,7 @@ public class MainFileCleanupService : IHostedService
         return Task.CompletedTask;
     }
 
-    private List<FileInfo> CleanUpFilesBeyondSizeLimit(List<FileInfo> files, double sizeLimit, bool deleteFromDb, MareDbContext dbContext, CancellationToken ct)
+    private List<FileInfo> CleanUpFilesBeyondSizeLimit(List<FileInfo> files, double sizeLimit, bool deleteFromDb, StellarDbContext dbContext, CancellationToken ct)
     {
         if (sizeLimit <= 0)
         {
@@ -103,7 +103,7 @@ public class MainFileCleanupService : IHostedService
     }
 
     private async Task<List<FileInfo>> CleanUpOutdatedFiles(string dir, List<FileInfo> allFilesInDir, int unusedRetention, int forcedDeletionAfterHours,
-        bool deleteFromDb, MareDbContext dbContext, CancellationToken ct)
+        bool deleteFromDb, StellarDbContext dbContext, CancellationToken ct)
     {
         try
         {
@@ -139,7 +139,7 @@ public class MainFileCleanupService : IHostedService
         return [];
     }
 
-    private void CleanUpStuckUploads(MareDbContext dbContext)
+    private void CleanUpStuckUploads(StellarDbContext dbContext)
     {
         var pastTime = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(20));
         var stuckUploads = dbContext.Files.Where(f => !f.Uploaded && f.UploadDate < pastTime);
@@ -241,7 +241,7 @@ public class MainFileCleanupService : IHostedService
         }
     }
     private async Task<List<string>> CleanupViaDb(string dir, int forcedDeletionAfterHours,
-        MareDbContext dbContext, DateTime lastAccessCutoffTime, DateTime forcedDeletionCutoffTime, List<FileCache> allDbFiles, CancellationToken ct)
+        StellarDbContext dbContext, DateTime lastAccessCutoffTime, DateTime forcedDeletionCutoffTime, List<FileCache> allDbFiles, CancellationToken ct)
     {
         int fileCounter = 0;
         List<string> removedFileHashes = new();

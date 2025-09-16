@@ -1,11 +1,11 @@
 using StellarSync.API.Routes;
-using MareSynchronosStaticFilesServer.Services;
-using MareSynchronosStaticFilesServer.Utils;
+using StellarSyncStaticFilesServer.Services;
+using StellarSyncStaticFilesServer.Utils;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MareSynchronosStaticFilesServer.Controllers;
+namespace StellarSyncStaticFilesServer.Controllers;
 
-[Route(MareFiles.Cache)]
+[Route(StellarFiles.Cache)]
 public class CacheController : ControllerBase
 {
     private readonly RequestFileStreamResultFactory _requestFileStreamResultFactory;
@@ -22,12 +22,12 @@ public class CacheController : ControllerBase
         _fileStatisticsService = fileStatisticsService;
     }
 
-    [HttpGet(MareFiles.Cache_Get)]
+    [HttpGet(StellarFiles.Cache_Get)]
     public async Task<IActionResult> GetFiles(Guid requestId)
     {
-        _logger.LogDebug($"GetFile:{MareUser}:{requestId}");
+        _logger.LogDebug($"GetFile:{StellarUser}:{requestId}");
 
-        if (!_requestQueue.IsActiveProcessing(requestId, MareUser, out var request)) return BadRequest();
+        if (!_requestQueue.IsActiveProcessing(requestId, StellarUser, out var request)) return BadRequest();
 
         _requestQueue.ActivateRequest(requestId);
 

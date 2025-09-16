@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace MareSynchronosServer.Migrations
+namespace StellarSyncServer.Migrations
 {
     /// <inheritdoc />
     public partial class FilesUploadDate : Migration

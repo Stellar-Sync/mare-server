@@ -1,4 +1,4 @@
-﻿namespace MareSynchronosStaticFilesServer.Services;
+﻿namespace StellarSyncStaticFilesServer.Services;
 
 public interface IClientReadyMessageService
 {

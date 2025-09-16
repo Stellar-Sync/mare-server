@@ -2,14 +2,14 @@
 using StellarSync.API.Dto.Files;
 using StellarSync.API.Routes;
 using StellarSync.API.SignalR;
-using MareSynchronosServer.Hubs;
-using MareSynchronosShared.Data;
-using MareSynchronosShared.Metrics;
-using MareSynchronosShared.Models;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils.Configuration;
-using MareSynchronosStaticFilesServer.Services;
-using MareSynchronosStaticFilesServer.Utils;
+using StellarSyncServer.Hubs;
+using StellarSyncShared.Data;
+using StellarSyncShared.Metrics;
+using StellarSyncShared.Models;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils.Configuration;
+using StellarSyncStaticFilesServer.Services;
+using StellarSyncStaticFilesServer.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -18,9 +18,9 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace MareSynchronosStaticFilesServer.Controllers;
+namespace StellarSyncStaticFilesServer.Controllers;
 
-[Route(MareFiles.ServerFiles)]
+[Route(StellarFiles.ServerFiles)]
 public class ServerFilesController : ControllerBase
 {
     private static readonly SemaphoreSlim _fileLockDictLock = new(1);
@@ -28,15 +28,15 @@ public class ServerFilesController : ControllerBase
     private readonly string _basePath;
     private readonly CachedFileProvider _cachedFileProvider;
     private readonly IConfigurationService<StaticFilesServerConfiguration> _configuration;
-    private readonly IHubContext<MareHub> _hubContext;
-    private readonly IDbContextFactory<MareDbContext> _mareDbContext;
-    private readonly MareMetrics _metricsClient;
+    private readonly IHubContext<StellarHub> _hubContext;
+    private readonly IDbContextFactory<StellarDbContext> _stellarDbContext;
+    private readonly StellarMetrics _metricsClient;
     private readonly MainServerShardRegistrationService _shardRegistrationService;
 
     public ServerFilesController(ILogger<ServerFilesController> logger, CachedFileProvider cachedFileProvider,
         IConfigurationService<StaticFilesServerConfiguration> configuration,
-        IHubContext<MareHub> hubContext,
-        IDbContextFactory<MareDbContext> mareDbContext, MareMetrics metricsClient,
+        IHubContext<StellarHub> hubContext,
+        IDbContextFactory<StellarDbContext> stellarDbContext, StellarMetrics metricsClient,
         MainServerShardRegistrationService shardRegistrationService) : base(logger)
     {
         _basePath = configuration.GetValueOrDefault(nameof(StaticFilesServerConfiguration.UseColdStorage), false)
@@ -45,16 +45,16 @@ public class ServerFilesController : ControllerBase
         _cachedFileProvider = cachedFileProvider;
         _configuration = configuration;
         _hubContext = hubContext;
-        _mareDbContext = mareDbContext;
+        _stellarDbContext = stellarDbContext;
         _metricsClient = metricsClient;
         _shardRegistrationService = shardRegistrationService;
     }
 
-    [HttpPost(MareFiles.ServerFiles_DeleteAll)]
+    [HttpPost(StellarFiles.ServerFiles_DeleteAll)]
     public async Task<IActionResult> FilesDeleteAll()
     {
-        using var dbContext = await _mareDbContext.CreateDbContextAsync();
-        var ownFiles = await dbContext.Files.Where(f => f.Uploaded && f.Uploader.UID == MareUser).ToListAsync().ConfigureAwait(false);
+        using var dbContext = await _stellarDbContext.CreateDbContextAsync();
+        var ownFiles = await dbContext.Files.Where(f => f.Uploaded && f.Uploader.UID == StellarUser).ToListAsync().ConfigureAwait(false);
         bool isColdStorage = _configuration.GetValueOrDefault(nameof(StaticFilesServerConfiguration.UseColdStorage), false);
 
         foreach (var dbFile in ownFiles)
@@ -75,10 +75,10 @@ public class ServerFilesController : ControllerBase
         return Ok();
     }
 
-    [HttpGet(MareFiles.ServerFiles_GetSizes)]
+    [HttpGet(StellarFiles.ServerFiles_GetSizes)]
     public async Task<IActionResult> FilesGetSizes([FromBody] List<string> hashes)
     {
-        using var dbContext = await _mareDbContext.CreateDbContextAsync();
+        using var dbContext = await _stellarDbContext.CreateDbContextAsync();
         var forbiddenFiles = await dbContext.ForbiddenUploadEntries.
             Where(f => hashes.Contains(f.Hash)).ToListAsync().ConfigureAwait(false);
         List<DownloadFileDto> response = new();
@@ -120,17 +120,17 @@ public class ServerFilesController : ControllerBase
         return Ok(JsonSerializer.Serialize(response));
     }
 
-    [HttpGet(MareFiles.ServerFiles_DownloadServers)]
+    [HttpGet(StellarFiles.ServerFiles_DownloadServers)]
     public async Task<IActionResult> GetDownloadServers()
     {
         var allFileShards = _shardRegistrationService.GetConfigurationsByContinent(Continent);
         return Ok(JsonSerializer.Serialize(allFileShards.SelectMany(t => t.RegionUris.Select(v => v.Value.ToString()))));
     }
 
-    [HttpPost(MareFiles.ServerFiles_FilesSend)]
+    [HttpPost(StellarFiles.ServerFiles_FilesSend)]
     public async Task<IActionResult> FilesSend([FromBody] FilesSendDto filesSendDto)
     {
-        using var dbContext = await _mareDbContext.CreateDbContextAsync();
+        using var dbContext = await _stellarDbContext.CreateDbContextAsync();
 
         var userSentHashes = new HashSet<string>(filesSendDto.FileHashes.Distinct(StringComparer.Ordinal).Select(s => string.Concat(s.Where(c => char.IsLetterOrDigit(c)))), StringComparer.Ordinal);
         var notCoveredFiles = new Dictionary<string, UploadFileDto>(StringComparer.Ordinal);
@@ -164,20 +164,20 @@ public class ServerFilesController : ControllerBase
 
         if (notCoveredFiles.Any(p => !p.Value.IsForbidden))
         {
-            await _hubContext.Clients.Users(filesSendDto.UIDs).SendAsync(nameof(IMareHub.Client_UserReceiveUploadStatus), new StellarSync.API.Dto.User.UserDto(new(MareUser)))
+            await _hubContext.Clients.Users(filesSendDto.UIDs).SendAsync(nameof(IStellarHub.Client_UserReceiveUploadStatus), new StellarSync.API.Dto.User.UserDto(new(StellarUser)))
                 .ConfigureAwait(false);
         }
 
         return Ok(JsonSerializer.Serialize(notCoveredFiles.Values.ToList()));
     }
 
-    [HttpPost(MareFiles.ServerFiles_Upload + "/{hash}")]
+    [HttpPost(StellarFiles.ServerFiles_Upload + "/{hash}")]
     [RequestSizeLimit(200 * 1024 * 1024)]
     public async Task<IActionResult> UploadFile(string hash, CancellationToken requestAborted)
     {
-        using var dbContext = await _mareDbContext.CreateDbContextAsync();
+        using var dbContext = await _stellarDbContext.CreateDbContextAsync();
 
-        _logger.LogInformation("{user}|{file}: Uploading", MareUser, hash);
+        _logger.LogInformation("{user}|{file}: Uploading", StellarUser, hash);
 
         hash = hash.ToUpperInvariant();
         var existingFile = await dbContext.Files.SingleOrDefaultAsync(f => f.Hash == hash);
@@ -197,7 +197,7 @@ public class ServerFilesController : ControllerBase
             using var memoryStream = new MemoryStream();
             await Request.Body.CopyToAsync(memoryStream, requestAborted).ConfigureAwait(false);
 
-            _logger.LogDebug("{user}|{file}: Finished uploading", MareUser, hash);
+            _logger.LogDebug("{user}|{file}: Finished uploading", StellarUser, hash);
 
             await StoreData(hash, dbContext, memoryStream).ConfigureAwait(false);
 
@@ -205,7 +205,7 @@ public class ServerFilesController : ControllerBase
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "{user}|{file}: Error during file upload", MareUser, hash);
+            _logger.LogError(e, "{user}|{file}: Error during file upload", StellarUser, hash);
             return BadRequest();
         }
         finally
@@ -226,13 +226,13 @@ public class ServerFilesController : ControllerBase
         }
     }
 
-    [HttpPost(MareFiles.ServerFiles_UploadMunged + "/{hash}")]
+    [HttpPost(StellarFiles.ServerFiles_UploadMunged + "/{hash}")]
     [RequestSizeLimit(200 * 1024 * 1024)]
     public async Task<IActionResult> UploadFileMunged(string hash, CancellationToken requestAborted)
     {
-        using var dbContext = await _mareDbContext.CreateDbContextAsync();
+        using var dbContext = await _stellarDbContext.CreateDbContextAsync();
 
-        _logger.LogInformation("{user}|{file}: Uploading munged", MareUser, hash);
+        _logger.LogInformation("{user}|{file}: Uploading munged", StellarUser, hash);
         hash = hash.ToUpperInvariant();
         var existingFile = await dbContext.Files.SingleOrDefaultAsync(f => f.Hash == hash);
         if (existingFile != null) return Ok();
@@ -254,7 +254,7 @@ public class ServerFilesController : ControllerBase
             MungeBuffer(unmungedFile.AsSpan());
             await using MemoryStream unmungedMs = new(unmungedFile);
 
-            _logger.LogDebug("{user}|{file}: Finished uploading, unmunged stream", MareUser, hash);
+            _logger.LogDebug("{user}|{file}: Finished uploading, unmunged stream", StellarUser, hash);
 
             await StoreData(hash, dbContext, unmungedMs);
 
@@ -262,7 +262,7 @@ public class ServerFilesController : ControllerBase
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "{user}|{file}: Error during file upload", MareUser, hash);
+            _logger.LogError(e, "{user}|{file}: Error during file upload", StellarUser, hash);
             return BadRequest();
         }
         finally
@@ -283,7 +283,7 @@ public class ServerFilesController : ControllerBase
         }
     }
 
-    private async Task StoreData(string hash, MareDbContext dbContext, MemoryStream compressedFileStream)
+    private async Task StoreData(string hash, StellarDbContext dbContext, MemoryStream compressedFileStream)
     {
         var decompressedData = LZ4Wrapper.Unwrap(compressedFileStream.ToArray());
         // reset streams
@@ -293,20 +293,20 @@ public class ServerFilesController : ControllerBase
         var hashString = BitConverter.ToString(SHA1.HashData(decompressedData))
             .Replace("-", "", StringComparison.Ordinal).ToUpperInvariant();
         if (!string.Equals(hashString, hash, StringComparison.Ordinal))
-            throw new InvalidOperationException($"{MareUser}|{hash}: Hash does not match file, computed: {hashString}, expected: {hash}");
+            throw new InvalidOperationException($"{StellarUser}|{hash}: Hash does not match file, computed: {hashString}, expected: {hash}");
 
         // save file
         var path = FilePathUtil.GetFilePath(_basePath, hash);
         using var fileStream = new FileStream(path, FileMode.Create);
         await compressedFileStream.CopyToAsync(fileStream).ConfigureAwait(false);
-        _logger.LogDebug("{user}|{file}: Uploaded file saved to {path}", MareUser, hash, path);
+        _logger.LogDebug("{user}|{file}: Uploaded file saved to {path}", StellarUser, hash, path);
 
         // update on db
         await dbContext.Files.AddAsync(new FileCache()
         {
             Hash = hash,
             UploadDate = DateTime.UtcNow,
-            UploaderUID = MareUser,
+            UploaderUID = StellarUser,
             Size = compressedFileStream.Length,
             Uploaded = true,
             RawSize = decompressedData.LongLength
@@ -314,7 +314,7 @@ public class ServerFilesController : ControllerBase
 
         await dbContext.SaveChangesAsync().ConfigureAwait(false);
 
-        _logger.LogDebug("{user}|{file}: Uploaded file saved to DB", MareUser, hash);
+        _logger.LogDebug("{user}|{file}: Uploaded file saved to DB", StellarUser, hash);
 
         bool isColdStorage = _configuration.GetValueOrDefault(nameof(StaticFilesServerConfiguration.UseColdStorage), false);
 
@@ -333,20 +333,20 @@ public class ServerFilesController : ControllerBase
             {
                 if (!_fileUploadLocks.TryGetValue(hash, out fileLock))
                 {
-                    _logger.LogDebug("{user}|{file}: Creating filelock", MareUser, hash);
+                    _logger.LogDebug("{user}|{file}: Creating filelock", StellarUser, hash);
                     _fileUploadLocks[hash] = fileLock = new SemaphoreSlim(1);
                 }
             }
 
             try
             {
-                _logger.LogDebug("{user}|{file}: Waiting for filelock", MareUser, hash);
+                _logger.LogDebug("{user}|{file}: Waiting for filelock", StellarUser, hash);
                 await fileLock.WaitAsync(requestAborted).ConfigureAwait(false);
                 successfullyWaited = true;
             }
             catch (ObjectDisposedException)
             {
-                _logger.LogWarning("{user}|{file}: Semaphore disposed, recreating", MareUser, hash);
+                _logger.LogWarning("{user}|{file}: Semaphore disposed, recreating", StellarUser, hash);
             }
         }
 

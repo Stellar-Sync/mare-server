@@ -1,6 +1,6 @@
-﻿namespace MareSynchronosServer.Hubs;
+﻿namespace StellarSyncServer.Hubs;
 
-public partial class MareHub
+public partial class StellarHub
 {
     private record UserPair
     {

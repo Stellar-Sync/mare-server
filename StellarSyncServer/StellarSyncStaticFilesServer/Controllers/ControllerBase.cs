@@ -1,7 +1,7 @@
-﻿using MareSynchronosShared.Utils;
+﻿using StellarSyncShared.Utils;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MareSynchronosStaticFilesServer.Controllers;
+namespace StellarSyncStaticFilesServer.Controllers;
 
 public class ControllerBase : Controller
 {
@@ -12,7 +12,7 @@ public class ControllerBase : Controller
         _logger = logger;
     }
 
-    protected string MareUser => HttpContext.User.Claims.First(f => string.Equals(f.Type, MareClaimTypes.Uid, StringComparison.Ordinal)).Value;
-    protected string Continent => HttpContext.User.Claims.FirstOrDefault(f => string.Equals(f.Type, MareClaimTypes.Continent, StringComparison.Ordinal))?.Value ?? "*";
-    protected bool IsPriority => !string.IsNullOrEmpty(HttpContext.User.Claims.FirstOrDefault(f => string.Equals(f.Type, MareClaimTypes.Alias, StringComparison.Ordinal))?.Value ?? string.Empty);
+    protected string StellarUser => HttpContext.User.Claims.First(f => string.Equals(f.Type, StellarClaimTypes.Uid, StringComparison.Ordinal)).Value;
+    protected string Continent => HttpContext.User.Claims.FirstOrDefault(f => string.Equals(f.Type, StellarClaimTypes.Continent, StringComparison.Ordinal))?.Value ?? "*";
+    protected bool IsPriority => !string.IsNullOrEmpty(HttpContext.User.Claims.FirstOrDefault(f => string.Equals(f.Type, StellarClaimTypes.Alias, StringComparison.Ordinal))?.Value ?? string.Empty);
 }

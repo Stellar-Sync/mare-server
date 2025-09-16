@@ -1,6 +1,6 @@
-using MareSynchronosServices;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils.Configuration;
+using StellarSyncServices;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils.Configuration;
 
 public class Program
 {
@@ -14,9 +14,9 @@ public class Program
             var options = host.Services.GetService<IConfigurationService<ServicesConfiguration>>();
             var optionsServer = host.Services.GetService<IConfigurationService<ServerConfiguration>>();
             var logger = host.Services.GetService<ILogger<Program>>();
-            logger.LogInformation("Loaded MareSynchronos Services Configuration (IsMain: {isMain})", options.IsMain);
+            logger.LogInformation("Loaded StellarSync Services Configuration (IsMain: {isMain})", options.IsMain);
             logger.LogInformation(options.ToString());
-            logger.LogInformation("Loaded MareSynchronos Server Configuration (IsMain: {isMain})", optionsServer.IsMain);
+            logger.LogInformation("Loaded StellarSync Server Configuration (IsMain: {isMain})", optionsServer.IsMain);
             logger.LogInformation(optionsServer.ToString());
         }
 

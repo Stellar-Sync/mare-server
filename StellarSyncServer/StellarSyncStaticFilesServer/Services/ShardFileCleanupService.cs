@@ -1,20 +1,20 @@
 ﻿using ByteSizeLib;
-using MareSynchronosShared.Metrics;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils.Configuration;
+using StellarSyncShared.Metrics;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils.Configuration;
 using Microsoft.EntityFrameworkCore;
 
-namespace MareSynchronosStaticFilesServer.Services;
+namespace StellarSyncStaticFilesServer.Services;
 
 public class ShardFileCleanupService : IHostedService
 {
     private readonly string _cacheDir;
     private readonly IConfigurationService<StaticFilesServerConfiguration> _configuration;
     private readonly ILogger<MainFileCleanupService> _logger;
-    private readonly MareMetrics _metrics;
+    private readonly StellarMetrics _metrics;
     private CancellationTokenSource _cleanupCts;
 
-    public ShardFileCleanupService(MareMetrics metrics, ILogger<MainFileCleanupService> logger, IConfigurationService<StaticFilesServerConfiguration> configuration)
+    public ShardFileCleanupService(StellarMetrics metrics, ILogger<MainFileCleanupService> logger, IConfigurationService<StaticFilesServerConfiguration> configuration)
     {
         _metrics = metrics;
         _logger = logger;

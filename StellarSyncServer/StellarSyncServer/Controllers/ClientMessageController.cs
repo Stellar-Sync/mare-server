@@ -1,20 +1,20 @@
 using StellarSync.API.SignalR;
-using MareSynchronosServer.Hubs;
-using MareSynchronosShared.Utils;
+using StellarSyncServer.Hubs;
+using StellarSyncShared.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
-namespace MareSynchronosServer.Controllers;
+namespace StellarSyncServer.Controllers;
 
 [Route("/msgc")]
 [Authorize(Policy = "Internal")]
 public class ClientMessageController : Controller
 {
     private ILogger<ClientMessageController> _logger;
-    private IHubContext<MareHub, IMareHub> _hubContext;
+    private IHubContext<StellarHub, IStellarHub> _hubContext;
 
-    public ClientMessageController(ILogger<ClientMessageController> logger, IHubContext<MareHub, IMareHub> hubContext)
+    public ClientMessageController(ILogger<ClientMessageController> logger, IHubContext<StellarHub, IStellarHub> hubContext)
     {
         _logger = logger;
         _hubContext = hubContext;

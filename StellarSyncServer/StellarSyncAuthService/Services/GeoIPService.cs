@@ -1,14 +1,14 @@
-﻿using MareSynchronosShared;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils.Configuration;
+﻿using StellarSyncShared;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils.Configuration;
 using MaxMind.GeoIP2;
 
-namespace MareSynchronosAuthService.Services;
+namespace StellarSyncAuthService.Services;
 
 public class GeoIPService : IHostedService
 {
     private readonly ILogger<GeoIPService> _logger;
-    private readonly IConfigurationService<AuthServiceConfiguration> _mareConfiguration;
+    private readonly IConfigurationService<AuthServiceConfiguration> _stellarConfiguration;
     private bool _useGeoIP = false;
     private string _cityFile = string.Empty;
     private DatabaseReader? _dbReader;
@@ -17,10 +17,10 @@ public class GeoIPService : IHostedService
     private bool _processingReload = false;
 
     public GeoIPService(ILogger<GeoIPService> logger,
-        IConfigurationService<AuthServiceConfiguration> mareConfiguration)
+        IConfigurationService<AuthServiceConfiguration> stellarConfiguration)
     {
         _logger = logger;
-        _mareConfiguration = mareConfiguration;
+        _stellarConfiguration = stellarConfiguration;
     }
 
     public async Task<string> GetCountryFromIP(IHttpContextAccessor httpContextAccessor)
@@ -85,8 +85,8 @@ public class GeoIPService : IHostedService
             {
                 _processingReload = true;
 
-                var useGeoIP = _mareConfiguration.GetValueOrDefault(nameof(AuthServiceConfiguration.UseGeoIP), false);
-                var cityFile = _mareConfiguration.GetValueOrDefault(nameof(AuthServiceConfiguration.GeoIPDbCityFile), string.Empty);
+                var useGeoIP = _stellarConfiguration.GetValueOrDefault(nameof(AuthServiceConfiguration.UseGeoIP), false);
+                var cityFile = _stellarConfiguration.GetValueOrDefault(nameof(AuthServiceConfiguration.GeoIPDbCityFile), string.Empty);
                 DateTime lastWriteTime = DateTime.MinValue;
                 if (File.Exists(cityFile))
                 {

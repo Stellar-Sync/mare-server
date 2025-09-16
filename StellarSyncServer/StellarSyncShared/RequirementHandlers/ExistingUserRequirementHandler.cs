@@ -1,19 +1,19 @@
-﻿using MareSynchronosShared.Data;
-using MareSynchronosShared.Utils;
+﻿using StellarSyncShared.Data;
+using StellarSyncShared.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 
-namespace MareSynchronosShared.RequirementHandlers;
+namespace StellarSyncShared.RequirementHandlers;
 public class ExistingUserRequirementHandler : AuthorizationHandler<ExistingUserRequirement>
 {
-    private readonly IDbContextFactory<MareDbContext> _dbContextFactory;
+    private readonly IDbContextFactory<StellarDbContext> _dbContextFactory;
     private readonly ILogger<ExistingUserRequirementHandler> _logger;
     private readonly static ConcurrentDictionary<string, (bool Exists, DateTime LastCheck)> _existingUserDict = [];
     private readonly static ConcurrentDictionary<ulong, (bool Exists, DateTime LastCheck)> _existingDiscordDict = [];
 
-    public ExistingUserRequirementHandler(IDbContextFactory<MareDbContext> dbContext, ILogger<ExistingUserRequirementHandler> logger)
+    public ExistingUserRequirementHandler(IDbContextFactory<StellarDbContext> dbContext, ILogger<ExistingUserRequirementHandler> logger)
     {
         _dbContextFactory = dbContext;
         _logger = logger;
@@ -23,7 +23,7 @@ public class ExistingUserRequirementHandler : AuthorizationHandler<ExistingUserR
     {
         try
         {
-            var uid = context.User.Claims.SingleOrDefault(g => string.Equals(g.Type, MareClaimTypes.Uid, StringComparison.Ordinal))?.Value;
+            var uid = context.User.Claims.SingleOrDefault(g => string.Equals(g.Type, StellarClaimTypes.Uid, StringComparison.Ordinal))?.Value;
             if (uid == null)
             {
                 context.Fail();
@@ -31,7 +31,7 @@ public class ExistingUserRequirementHandler : AuthorizationHandler<ExistingUserR
                 return;
             }
 
-            var discordIdString = context.User.Claims.SingleOrDefault(g => string.Equals(g.Type, MareClaimTypes.DiscordId, StringComparison.Ordinal))?.Value;
+            var discordIdString = context.User.Claims.SingleOrDefault(g => string.Equals(g.Type, StellarClaimTypes.DiscordId, StringComparison.Ordinal))?.Value;
             if (discordIdString == null)
             {
                 context.Fail();
@@ -55,7 +55,7 @@ public class ExistingUserRequirementHandler : AuthorizationHandler<ExistingUserR
             }
             if (!existingUser.Exists)
             {
-                _logger.LogWarning("Failed to find Mare User {User} in DB", uid);
+                _logger.LogWarning("Failed to find Stellar User {User} in DB", uid);
                 context.Fail();
                 return;
             }

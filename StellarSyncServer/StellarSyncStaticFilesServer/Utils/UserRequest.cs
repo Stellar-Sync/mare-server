@@ -1,4 +1,4 @@
-﻿namespace MareSynchronosStaticFilesServer.Utils;
+﻿namespace StellarSyncStaticFilesServer.Utils;
 
 public record UserRequest(Guid RequestId, string User, List<string> FileIds)
 {

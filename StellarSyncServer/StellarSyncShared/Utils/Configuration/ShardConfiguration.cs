@@ -1,4 +1,4 @@
-﻿namespace MareSynchronosShared.Utils.Configuration;
+﻿namespace StellarSyncShared.Utils.Configuration;
 
 public class ShardConfiguration
 {

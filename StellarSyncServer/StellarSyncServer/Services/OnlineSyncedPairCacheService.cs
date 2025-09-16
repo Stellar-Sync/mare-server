@@ -1,6 +1,6 @@
-﻿using MareSynchronosShared.Metrics;
+﻿using StellarSyncShared.Metrics;
 
-namespace MareSynchronosServer.Services;
+namespace StellarSyncServer.Services;
 
 public class OnlineSyncedPairCacheService
 {
@@ -8,13 +8,13 @@ public class OnlineSyncedPairCacheService
     private readonly SemaphoreSlim _cacheModificationSemaphore = new(1);
     private readonly ILogger<OnlineSyncedPairCacheService> _logger;
     private readonly ILoggerFactory _loggerFactory;
-    private readonly MareMetrics _mareMetrics;
+    private readonly StellarMetrics _stellarMetrics;
 
-    public OnlineSyncedPairCacheService(ILogger<OnlineSyncedPairCacheService> logger, ILoggerFactory loggerFactory, MareMetrics mareMetrics)
+    public OnlineSyncedPairCacheService(ILogger<OnlineSyncedPairCacheService> logger, ILoggerFactory loggerFactory, StellarMetrics stellarMetrics)
     {
         _logger = logger;
         _loggerFactory = loggerFactory;
-        _mareMetrics = mareMetrics;
+        _stellarMetrics = stellarMetrics;
     }
 
     public async Task InitPlayer(string user)
@@ -25,7 +25,7 @@ public class OnlineSyncedPairCacheService
         try
         {
             _logger.LogDebug("Initializing {user}", user);
-            _lastSeenCache[user] = new(_loggerFactory.CreateLogger<PairCache>(), user, _mareMetrics);
+            _lastSeenCache[user] = new(_loggerFactory.CreateLogger<PairCache>(), user, _stellarMetrics);
         }
         finally
         {
@@ -70,11 +70,11 @@ public class OnlineSyncedPairCacheService
     {
         private readonly ILogger<PairCache> _logger;
         private readonly string _owner;
-        private readonly MareMetrics _metrics;
+        private readonly StellarMetrics _metrics;
         private readonly Dictionary<string, DateTime> _lastSeenCache = new(StringComparer.Ordinal);
         private readonly SemaphoreSlim _lock = new(1);
 
-        public PairCache(ILogger<PairCache> logger, string owner, MareMetrics metrics)
+        public PairCache(ILogger<PairCache> logger, string owner, StellarMetrics metrics)
         {
             metrics.IncGauge(MetricsAPI.GaugeUserPairCacheUsers);
             _logger = logger;

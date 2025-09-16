@@ -1,20 +1,20 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using MareSynchronosShared.Data;
+using StellarSyncShared.Data;
 using Microsoft.EntityFrameworkCore;
-using MareSynchronosShared.Utils;
+using StellarSyncShared.Utils;
 using StackExchange.Redis;
 using Microsoft.Extensions.Logging;
 
-namespace MareSynchronosShared.RequirementHandlers;
+namespace StellarSyncShared.RequirementHandlers;
 
 public class RedisDbUserRequirementHandler : AuthorizationHandler<UserRequirement, HubInvocationContext>
 {
-    private readonly IDbContextFactory<MareDbContext> _dbContextFactory;
+    private readonly IDbContextFactory<StellarDbContext> _dbContextFactory;
     private readonly ILogger<RedisDbUserRequirementHandler> _logger;
     private readonly IDatabase _redis;
 
-    public RedisDbUserRequirementHandler(IDbContextFactory<MareDbContext> dbContextFactory, ILogger<RedisDbUserRequirementHandler> logger, IDatabase redisDb)
+    public RedisDbUserRequirementHandler(IDbContextFactory<StellarDbContext> dbContextFactory, ILogger<RedisDbUserRequirementHandler> logger, IDatabase redisDb)
     {
         _dbContextFactory = dbContextFactory;
         _logger = logger;
@@ -23,7 +23,7 @@ public class RedisDbUserRequirementHandler : AuthorizationHandler<UserRequiremen
 
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, UserRequirement requirement, HubInvocationContext resource)
     {
-        var uid = context.User.Claims.SingleOrDefault(g => string.Equals(g.Type, MareClaimTypes.Uid, StringComparison.Ordinal))?.Value;
+        var uid = context.User.Claims.SingleOrDefault(g => string.Equals(g.Type, StellarClaimTypes.Uid, StringComparison.Ordinal))?.Value;
 
         if (uid == null) context.Fail();
 

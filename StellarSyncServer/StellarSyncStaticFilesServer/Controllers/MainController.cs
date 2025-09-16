@@ -1,26 +1,26 @@
 using StellarSync.API.Routes;
-using MareSynchronosShared.Utils.Configuration;
-using MareSynchronosStaticFilesServer.Services;
+using StellarSyncShared.Utils.Configuration;
+using StellarSyncStaticFilesServer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MareSynchronosStaticFilesServer.Controllers;
+namespace StellarSyncStaticFilesServer.Controllers;
 
-[Route(MareFiles.Main)]
+[Route(StellarFiles.Main)]
 [Authorize(Policy = "Internal")]
 public class MainController : ControllerBase
 {
     private readonly IClientReadyMessageService _messageService;
     private readonly MainServerShardRegistrationService _shardRegistrationService;
 
-    public MainController(ILogger<MainController> logger, IClientReadyMessageService mareHub,
+    public MainController(ILogger<MainController> logger, IClientReadyMessageService stellarHub,
         MainServerShardRegistrationService shardRegistrationService) : base(logger)
     {
-        _messageService = mareHub;
+        _messageService = stellarHub;
         _shardRegistrationService = shardRegistrationService;
     }
 
-    [HttpGet(MareFiles.Main_SendReady)]
+    [HttpGet(StellarFiles.Main_SendReady)]
     public async Task<IActionResult> SendReadyToClients(string uid, Guid requestId)
     {
         await _messageService.SendDownloadReady(uid, requestId).ConfigureAwait(false);
@@ -32,12 +32,12 @@ public class MainController : ControllerBase
     {
         try
         {
-            _shardRegistrationService.RegisterShard(MareUser, shardConfiguration);
+            _shardRegistrationService.RegisterShard(StellarUser, shardConfiguration);
             return Ok();
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Shard could not be registered {shard}", MareUser);
+            _logger.LogWarning(ex, "Shard could not be registered {shard}", StellarUser);
             return BadRequest();
         }
     }
@@ -45,7 +45,7 @@ public class MainController : ControllerBase
     [HttpPost("shardUnregister")]
     public IActionResult UnregisterShard()
     {
-        _shardRegistrationService.UnregisterShard(MareUser);
+        _shardRegistrationService.UnregisterShard(StellarUser);
         return Ok();
     }
 
@@ -54,12 +54,12 @@ public class MainController : ControllerBase
     {
         try
         {
-            _shardRegistrationService.ShardHeartbeat(MareUser);
+            _shardRegistrationService.ShardHeartbeat(StellarUser);
             return Ok();
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Shard not registered: {shard}", MareUser);
+            _logger.LogWarning(ex, "Shard not registered: {shard}", StellarUser);
             return BadRequest();
         }
     }

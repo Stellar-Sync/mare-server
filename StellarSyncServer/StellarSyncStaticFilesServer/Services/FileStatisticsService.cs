@@ -1,17 +1,17 @@
-﻿using MareSynchronosShared.Metrics;
+﻿using StellarSyncShared.Metrics;
 using System.Collections.Concurrent;
 
-namespace MareSynchronosStaticFilesServer.Services;
+namespace StellarSyncStaticFilesServer.Services;
 
 public class FileStatisticsService : IHostedService
 {
-    private readonly MareMetrics _metrics;
+    private readonly StellarMetrics _metrics;
     private readonly ILogger<FileStatisticsService> _logger;
     private CancellationTokenSource _resetCancellationTokenSource;
     private ConcurrentDictionary<string, long> _pastHourFiles = new(StringComparer.Ordinal);
     private ConcurrentDictionary<string, long> _pastDayFiles = new(StringComparer.Ordinal);
 
-    public FileStatisticsService(MareMetrics metrics, ILogger<FileStatisticsService> logger)
+    public FileStatisticsService(StellarMetrics metrics, ILogger<FileStatisticsService> logger)
     {
         _metrics = metrics;
         _logger = logger;

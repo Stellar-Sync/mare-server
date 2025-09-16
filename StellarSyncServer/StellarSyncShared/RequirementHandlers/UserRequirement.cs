@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 
-namespace MareSynchronosShared.RequirementHandlers;
+namespace StellarSyncShared.RequirementHandlers;
 
 public class UserRequirement : IAuthorizationRequirement
 {

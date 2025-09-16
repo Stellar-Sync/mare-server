@@ -1,4 +1,4 @@
-﻿namespace MareSynchronosShared.Models;
+﻿namespace StellarSyncShared.Models;
 
 public class GroupPair
 {

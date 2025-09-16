@@ -1,2 +1,2 @@
 #!/bin/sh
-docker build -t kasuaberra/mare-synchronos-staticfilesserver:latest . -f ../Dockerfile-MareSynchronosStaticFilesServer-git --no-cache --pull --force-rm
+docker build -t kasuaberra/stellar-sync-staticfilesserver:latest . -f ../Dockerfile-StellarSyncStaticFilesServer-git --no-cache --pull --force-rm

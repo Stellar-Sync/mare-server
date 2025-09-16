@@ -6,14 +6,14 @@ services:
     ports:
       - 5432:5432/tcp
     environment:
-      POSTGRES_DB: mare
-      POSTGRES_USER: mare
+      POSTGRES_DB: stellar
+      POSTGRES_USER: stellar
       POSTGRES_PASSWORD: secretdevpassword
     volumes:
       - ../data/postgresql/:/var/lib/postgresql/data
       - postgres_socket:/var/run/postgresql:rw
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U mare']
+      test: ['CMD-SHELL', 'pg_isready -U stellar']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -34,19 +34,19 @@ services:
       timeout: 5s
       retries: 3
 
-  mare-server:
-    image: kasuaberra/mare-synchronos-server:latest
+  stellar-server:
+    image: kasuaberra/stellar-sync-server:latest
     restart: on-failure
     ports:
       - 6000:6000/tcp
       - 6050:6050/tcp
     environment:
-      MareSynchronos__CdnFullUrl: '${DEV_MARE_CDNURL}'
-      MareSynchronos__XIVAPIKey: '${DEV_MARE_XIVAPIKEY}'
+      StellarSync__CdnFullUrl: '${DEV_STELLAR_CDNURL}'
+      StellarSync__XIVAPIKey: '${DEV_STELLAR_XIVAPIKEY}'
       DOTNET_USE_POLLING_FILE_WATCHER: 1
     volumes:
-      - ../config/standalone/server-standalone.json:/opt/MareSynchronosServer/appsettings.json
-      - ../log/server-standalone/:/opt/MareSynchronosServer/logs/:rw
+      - ../config/standalone/server-standalone.json:/opt/StellarSyncServer/appsettings.json
+      - ../log/server-standalone/:/opt/StellarSyncServer/logs/:rw
       - postgres_socket:/var/run/postgresql/:rw
     depends_on:
       postgres:
@@ -57,61 +57,61 @@ services:
       start_period: 10s
       timeout: 1s
 
-  mare-auth:
-    image: kasuaberra/mare-synchronos-authservice:latest
+  stellar-auth:
+    image: kasuaberra/stellar-sync-authservice:latest
     restart: on-failure
     ports:
       - 8080:8080/tcp
     environment:
       DOTNET_USE_POLLING_FILE_WATCHER: 1
-      MareSynchronos__DiscordOAuthClientId: '${DEV_MARE_DISCORD_OAUTH_CLIENT_ID}'
-      MareSynchronos__DiscordOAuthClientSecret: '${DEV_MARE_DISCORD_OAUTH_CLIENT_SECRET}'
+      StellarSync__DiscordOAuthClientId: '${DEV_STELLAR_DISCORD_OAUTH_CLIENT_ID}'
+      StellarSync__DiscordOAuthClientSecret: '${DEV_STELLAR_DISCORD_OAUTH_CLIENT_SECRET}'
     volumes:
-      - ../config/standalone/authservice-standalone.json:/opt/MareSynchronosAuthService/appsettings.json
-      - ../log/authservice-standalone/:/opt/MareSynchronosAuthService/logs/:rw
+      - ../config/standalone/authservice-standalone.json:/opt/StellarSyncAuthService/appsettings.json
+      - ../log/authservice-standalone/:/opt/StellarSyncAuthService/logs/:rw
       - postgres_socket:/var/run/postgresql/:rw
     depends_on:
-      mare-server:
+      stellar-server:
         condition: service_healthy
       postgres:
         condition: service_healthy
 
-  mare-services:
-    image: kasuaberra/mare-synchronos-services:latest
+  stellar-services:
+    image: kasuaberra/stellar-sync-services:latest
     restart: on-failure
     environment:
-      MareSynchronos__DiscordBotToken: '${DEV_MARE_DISCORDTOKEN}'
-      MareSynchronos__DiscordChannelForMessages: '${DEV_MARE_DISCORDCHANNEL}'
-      MareSynchronos__DiscordChannelForReports: '${DEV_MARE_DISCORDCHANNEL}'
-      MareSynchronos__DiscordChannelForCommands: '${DEV_MARE_DISCORDCHANNEL}'
+      StellarSync__DiscordBotToken: '${DEV_STELLAR_DISCORDTOKEN}'
+      StellarSync__DiscordChannelForMessages: '${DEV_STELLAR_DISCORDCHANNEL}'
+      StellarSync__DiscordChannelForReports: '${DEV_STELLAR_DISCORDCHANNEL}'
+      StellarSync__DiscordChannelForCommands: '${DEV_STELLAR_DISCORDCHANNEL}'
       DOTNET_USE_POLLING_FILE_WATCHER: 1
     volumes:
-      - ../config/standalone/services-standalone.json:/opt/MareSynchronosServices/appsettings.json
-      - ../log/services-standalone/:/opt/MareSynchronosServices/logs/:rw
+      - ../config/standalone/services-standalone.json:/opt/StellarSyncServices/appsettings.json
+      - ../log/services-standalone/:/opt/StellarSyncServices/logs/:rw
       - postgres_socket:/var/run/postgresql/:rw
     depends_on:
-      mare-server:
+      stellar-server:
         condition: service_healthy
       postgres:
         condition: service_healthy
 
-  mare-files:
-    image: kasuaberra/mare-synchronos-staticfilesserver:latest
+  stellar-files:
+    image: kasuaberra/stellar-sync-staticfilesserver:latest
     ports:
       - 6200:6200/tcp
     restart: on-failure
     environment:
-      MareSynchronos__CdnFullUrl: '${DEV_MARE_CDNURL}'
+      StellarSync__CdnFullUrl: '${DEV_STELLAR_CDNURL}'
       DOTNET_USE_POLLING_FILE_WATCHER: 1
     volumes:
-      - ../config/standalone/files-standalone.json:/opt/MareSynchronosStaticFilesServer/appsettings.json
-      - ../log/files-standalone/:/opt/MareSynchronosStaticFilesServer/logs/:rw
+      - ../config/standalone/files-standalone.json:/opt/StellarSyncStaticFilesServer/appsettings.json
+      - ../log/files-standalone/:/opt/StellarSyncStaticFilesServer/logs/:rw
       - postgres_socket:/var/run/postgresql/:rw
-      - ../data/files-standalone/:/marecache/:rw
+      - ../data/files-standalone/:/stellarcache/:rw
     depends_on:
       postgres:
         condition: service_healthy
-      mare-server:
+      stellar-server:
         condition: service_healthy
 
 volumes:

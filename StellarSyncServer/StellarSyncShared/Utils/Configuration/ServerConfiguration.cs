@@ -1,8 +1,8 @@
 ﻿using System.Text;
 
-namespace MareSynchronosShared.Utils.Configuration;
+namespace StellarSyncShared.Utils.Configuration;
 
-public class ServerConfiguration : MareConfigurationBase
+public class ServerConfiguration : StellarConfigurationBase
 {
     [RemoteConfiguration]
     public Uri CdnFullUrl { get; set; } = null;

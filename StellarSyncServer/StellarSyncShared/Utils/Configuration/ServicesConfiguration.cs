@@ -1,8 +1,8 @@
 ﻿using System.Text;
 
-namespace MareSynchronosShared.Utils.Configuration;
+namespace StellarSyncShared.Utils.Configuration;
 
-public class ServicesConfiguration : MareConfigurationBase
+public class ServicesConfiguration : StellarConfigurationBase
 {
     public string DiscordBotToken { get; set; } = string.Empty;
     public ulong? DiscordChannelForMessages { get; set; } = null;

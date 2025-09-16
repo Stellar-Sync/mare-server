@@ -1,18 +1,18 @@
-﻿using MareSynchronosShared.Metrics;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils.Configuration;
-using MareSynchronosStaticFilesServer.Utils;
+﻿using StellarSyncShared.Metrics;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils.Configuration;
+using StellarSyncStaticFilesServer.Utils;
 using System.Collections.Concurrent;
 using System.Timers;
 
-namespace MareSynchronosStaticFilesServer.Services;
+namespace StellarSyncStaticFilesServer.Services;
 
 public class RequestQueueService : IHostedService
 {
     private readonly IClientReadyMessageService _clientReadyMessageService;
     private readonly CachedFileProvider _cachedFileProvider;
     private readonly ILogger<RequestQueueService> _logger;
-    private readonly MareMetrics _metrics;
+    private readonly StellarMetrics _metrics;
     private readonly ConcurrentQueue<UserRequest> _queue = new();
     private readonly ConcurrentQueue<UserRequest> _priorityQueue = new();
     private readonly int _queueExpirationSeconds;
@@ -22,7 +22,7 @@ public class RequestQueueService : IHostedService
     private readonly int _queueReleaseSeconds;
     private System.Timers.Timer _queueTimer;
 
-    public RequestQueueService(MareMetrics metrics, IConfigurationService<StaticFilesServerConfiguration> configurationService,
+    public RequestQueueService(StellarMetrics metrics, IConfigurationService<StaticFilesServerConfiguration> configurationService,
         ILogger<RequestQueueService> logger, IClientReadyMessageService hubContext, CachedFileProvider cachedFileProvider)
     {
         _userQueueRequests = new UserQueueEntry[configurationService.GetValueOrDefault(nameof(StaticFilesServerConfiguration.DownloadQueueSize), 50)];

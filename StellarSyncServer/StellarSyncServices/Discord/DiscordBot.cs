@@ -2,15 +2,15 @@
 using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
-using MareSynchronosShared.Data;
-using MareSynchronosShared.Models;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils.Configuration;
+using StellarSyncShared.Data;
+using StellarSyncShared.Models;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using StackExchange.Redis;
 
-namespace MareSynchronosServices.Discord;
+namespace StellarSyncServices.Discord;
 
 internal class DiscordBot : IHostedService
 {
@@ -19,14 +19,14 @@ internal class DiscordBot : IHostedService
     private readonly IConnectionMultiplexer _connectionMultiplexer;
     private readonly DiscordSocketClient _discordClient;
     private readonly ILogger<DiscordBot> _logger;
-    private readonly IDbContextFactory<MareDbContext> _dbContextFactory;
+    private readonly IDbContextFactory<StellarDbContext> _dbContextFactory;
     private readonly IServiceProvider _services;
     private InteractionService _interactionModule;
     private readonly CancellationTokenSource? _processReportQueueCts;
     private CancellationTokenSource? _clientConnectedCts;
 
     public DiscordBot(DiscordBotServices botServices, IServiceProvider services, IConfigurationService<ServicesConfiguration> configuration,
-        IDbContextFactory<MareDbContext> dbContextFactory,
+        IDbContextFactory<StellarDbContext> dbContextFactory,
         ILogger<DiscordBot> logger, IConnectionMultiplexer connectionMultiplexer)
     {
         _botServices = botServices;
@@ -55,8 +55,8 @@ internal class DiscordBot : IHostedService
             _interactionModule?.Dispose();
             _interactionModule = new InteractionService(_discordClient);
             _interactionModule.Log += Log;
-            await _interactionModule.AddModuleAsync(typeof(MareModule), _services).ConfigureAwait(false);
-            await _interactionModule.AddModuleAsync(typeof(MareWizardModule), _services).ConfigureAwait(false);
+            await _interactionModule.AddModuleAsync(typeof(StellarModule), _services).ConfigureAwait(false);
+            await _interactionModule.AddModuleAsync(typeof(StellarWizardModule), _services).ConfigureAwait(false);
 
             await _discordClient.LoginAsync(TokenType.Bot, token).ConfigureAwait(false);
             await _discordClient.StartAsync().ConfigureAwait(false);
@@ -77,7 +77,7 @@ internal class DiscordBot : IHostedService
     {
         try
         {
-            using MareDbContext dbContext = await _dbContextFactory.CreateDbContextAsync().ConfigureAwait(false);
+            using StellarDbContext dbContext = await _dbContextFactory.CreateDbContextAsync().ConfigureAwait(false);
             var alreadyRegistered = await dbContext.LodeStoneAuth.AnyAsync(u => u.DiscordId == arg.Id).ConfigureAwait(false);
             if (alreadyRegistered)
             {
@@ -184,9 +184,9 @@ internal class DiscordBot : IHostedService
     private async Task GenerateOrUpdateWizardMessage(SocketTextChannel channel, IUserMessage? prevMessage)
     {
         EmbedBuilder eb = new EmbedBuilder();
-        eb.WithTitle("Mare Services Bot Interaction Service");
+        eb.WithTitle("Stellar Services Bot Interaction Service");
         eb.WithDescription("Press \"Start\" to interact with this bot!" + Environment.NewLine + Environment.NewLine
-            + "You can handle all of your Mare account needs in this server through the easy to use interactive bot prompt. Just follow the instructions!");
+            + "You can handle all of your Stellar account needs in this server through the easy to use interactive bot prompt. Just follow the instructions!");
         eb.WithThumbnailUrl("https://raw.githubusercontent.com/Stellar-Sync/repo/main/StellarSync/images/icon.png");
         var cb = new ComponentBuilder();
         cb.WithButton("Start", style: ButtonStyle.Primary, customId: "wizard-captcha:true", emote: Emoji.Parse("➡️"));
@@ -252,7 +252,7 @@ internal class DiscordBot : IHostedService
 
     private async Task ProcessUserRoles(RestGuild guild, CancellationToken token)
     {
-        using MareDbContext dbContext = await _dbContextFactory.CreateDbContextAsync(token).ConfigureAwait(false);
+        using StellarDbContext dbContext = await _dbContextFactory.CreateDbContextAsync(token).ConfigureAwait(false);
         var roleId = _configurationService.GetValueOrDefault<ulong?>(nameof(ServicesConfiguration.DiscordRoleRegistered), 0);
         var kickUnregistered = _configurationService.GetValueOrDefault(nameof(ServicesConfiguration.KickNonRegisteredUsers), false);
         if (roleId == null) return;
@@ -367,7 +367,7 @@ internal class DiscordBot : IHostedService
         }
     }
 
-    private async Task CheckVanityForGroup(RestGuild restGuild, Dictionary<ulong, string> allowedRoleIds, MareDbContext db, Group group, CancellationToken token)
+    private async Task CheckVanityForGroup(RestGuild restGuild, Dictionary<ulong, string> allowedRoleIds, StellarDbContext db, Group group, CancellationToken token)
     {
         var groupPrimaryUser = group.OwnerUID;
         var groupOwner = await db.Auth.Include(u => u.User).SingleOrDefaultAsync(u => u.UserUID == group.OwnerUID).ConfigureAwait(false);
@@ -396,7 +396,7 @@ internal class DiscordBot : IHostedService
         }
     }
 
-    private async Task CheckVanityForUser(RestGuild restGuild, Dictionary<ulong, string> allowedRoleIds, MareDbContext db, LodeStoneAuth lodestoneAuth, CancellationToken token)
+    private async Task CheckVanityForUser(RestGuild restGuild, Dictionary<ulong, string> allowedRoleIds, StellarDbContext db, LodeStoneAuth lodestoneAuth, CancellationToken token)
     {
         var discordUser = await restGuild.GetUserAsync(lodestoneAuth.DiscordId).ConfigureAwait(false);
         _logger.LogInformation($"Checking User: {lodestoneAuth.DiscordId}, {lodestoneAuth.User.UID} ({lodestoneAuth.User.Alias}), User in Roles: {string.Join(", ", discordUser?.RoleIds ?? new List<ulong>())}");
@@ -427,7 +427,7 @@ internal class DiscordBot : IHostedService
             var onlineUsers = await _connectionMultiplexer.GetServer(endPoint).KeysAsync(pattern: "UID:*").CountAsync().ConfigureAwait(false);
 
             _logger.LogInformation("Users online: " + onlineUsers);
-            await _discordClient.SetActivityAsync(new Game("Mare for " + onlineUsers + " Users")).ConfigureAwait(false);
+            await _discordClient.SetActivityAsync(new Game("Stellar for " + onlineUsers + " Users")).ConfigureAwait(false);
             await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
         }
     }

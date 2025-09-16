@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace MareSynchronosServer.Migrations
+namespace StellarSyncServer.Migrations
 {
     /// <inheritdoc />
     public partial class FileCacheSize : Migration

@@ -1,4 +1,4 @@
-﻿using MareSynchronosServer.Hubs;
+﻿using StellarSyncServer.Hubs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -11,18 +11,18 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using MareSynchronosShared.Data;
-using MareSynchronosShared.Models;
+using StellarSyncShared.Data;
+using StellarSyncShared.Models;
 
-namespace MareSynchronosServerTest.Hubs {
-    public class MareHubTest {
+namespace StellarSyncServerTest.Hubs {
+    public class StellarHubTest {
 
         [Test]
         public async Task Disconnect_QueryReturnsCorrectResult_Test() {
-            var options = new DbContextOptionsBuilder<MareDbContext>()
-                .UseInMemoryDatabase(databaseName: "mare").Options;
+            var options = new DbContextOptionsBuilder<StellarDbContext>()
+                .UseInMemoryDatabase(databaseName: "stellar").Options;
 
-            using var context = new MareDbContext(options);
+            using var context = new StellarDbContext(options);
             context.Users.Add(new User() { UID = "User1", IsModerator = false, IsAdmin = false, CharacterIdentification = "Ident1" });
             context.Users.Add(new User() { UID = "User2", IsModerator = false, IsAdmin = false, CharacterIdentification = "Ident2" });
             context.Users.Add(new User() { UID = "User3", IsModerator = false, IsAdmin = false, CharacterIdentification = "Ident3" });
@@ -67,7 +67,7 @@ namespace MareSynchronosServerTest.Hubs {
             var clientProxyMock = new Mock<IClientProxy>();
             clientsMock.Setup(x => x.Users(It.IsAny<IReadOnlyList<string>>())).Returns(clientProxyMock.Object);            
 
-            var hub = new MareHub(context, new Mock<ILogger<MareHub>>().Object, null, new Mock<IConfiguration>().Object, new Mock<IHttpContextAccessor>().Object);
+            var hub = new StellarHub(context, new Mock<ILogger<StellarHub>>().Object, null, new Mock<IConfiguration>().Object, new Mock<IHttpContextAccessor>().Object);
 
 
             hub.Clients = clientsMock.Object;

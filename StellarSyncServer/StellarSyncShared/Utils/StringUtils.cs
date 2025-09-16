@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace MareSynchronosShared.Utils;
+namespace StellarSyncShared.Utils;
 
 public static class StringUtils
 {

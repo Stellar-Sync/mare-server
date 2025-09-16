@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using System.Reflection;
 using Microsoft.Extensions.Logging;
 
-namespace MareSynchronosShared.Utils;
+namespace StellarSyncShared.Utils;
 
 public class AllowedControllersFeatureProvider : ControllerFeatureProvider
 {

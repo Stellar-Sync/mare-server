@@ -1,10 +1,10 @@
 using StellarSync.API.Data;
 using StellarSync.API.Data.Enum;
 using StellarSync.API.Data.Extensions;
-using MareSynchronosShared.Models;
-using static MareSynchronosServer.Hubs.MareHub;
+using StellarSyncShared.Models;
+using static StellarSyncServer.Hubs.StellarHub;
 
-namespace MareSynchronosServer.Utils;
+namespace StellarSyncServer.Utils;
 
 public static class Extensions
 {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace MareSynchronosShared;
+namespace StellarSyncShared;
 
 public static class Extensions
 {

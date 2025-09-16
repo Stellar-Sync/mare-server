@@ -1,15 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using MareSynchronosShared.Utils;
+using StellarSyncShared.Utils;
 using System.Globalization;
 
-namespace MareSynchronosShared.RequirementHandlers;
+namespace StellarSyncShared.RequirementHandlers;
 
 public class ValidTokenRequirementHandler : AuthorizationHandler<ValidTokenRequirement>
 {
     protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, ValidTokenRequirement requirement)
     {
-        var expirationClaimValue = context.User.Claims.SingleOrDefault(r => string.Equals(r.Type, MareClaimTypes.Expires, StringComparison.Ordinal));
+        var expirationClaimValue = context.User.Claims.SingleOrDefault(r => string.Equals(r.Type, StellarClaimTypes.Expires, StringComparison.Ordinal));
         if (expirationClaimValue == null)
         {
             context.Fail();
@@ -33,7 +33,7 @@ public class ValidTokenHubRequirementHandler : AuthorizationHandler<ValidTokenRe
 {
     protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, ValidTokenRequirement requirement, HubInvocationContext resource)
     {
-        var expirationClaimValue = context.User.Claims.SingleOrDefault(r => string.Equals(r.Type, MareClaimTypes.Expires, StringComparison.Ordinal));
+        var expirationClaimValue = context.User.Claims.SingleOrDefault(r => string.Equals(r.Type, StellarClaimTypes.Expires, StringComparison.Ordinal));
         if (expirationClaimValue == null)
         {
             context.Fail();

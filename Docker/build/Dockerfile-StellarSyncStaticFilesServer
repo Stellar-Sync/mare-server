@@ -1,0 +1,32 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 as BUILD
+
+COPY StellarAPI /server/StellarAPI
+COPY StellarSyncServer/StellarSyncShared /server/StellarSyncServer/StellarSyncShared
+COPY StellarSyncServer/StellarSyncStaticFilesServer /server/StellarSyncServer/StellarSyncStaticFilesServer
+
+WORKDIR /server/StellarSyncServer/StellarSyncStaticFilesServer/
+
+RUN dotnet publish \
+        --configuration=Release \
+        --os=linux \
+        --output=/build \
+        StellarSyncStaticFilesServer.csproj
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+
+RUN adduser \
+        --disabled-password \
+        --group \
+        --no-create-home \
+        --quiet \
+        --system \
+        stellar
+
+COPY --from=BUILD /build /opt/StellarSyncStaticFilesServer
+RUN chown -R stellar:stellar /opt/StellarSyncStaticFilesServer
+RUN apt-get update; apt-get install curl -y
+
+USER stellar:stellar
+WORKDIR /opt/StellarSyncStaticFilesServer
+
+CMD ["./StellarSyncStaticFilesServer"]

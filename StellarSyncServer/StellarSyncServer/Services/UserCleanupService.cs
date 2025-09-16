@@ -1,26 +1,26 @@
-﻿using MareSynchronosShared.Data;
-using MareSynchronosShared.Metrics;
-using MareSynchronosShared.Models;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils;
-using MareSynchronosShared.Utils.Configuration;
+﻿using StellarSyncShared.Data;
+using StellarSyncShared.Metrics;
+using StellarSyncShared.Models;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils;
+using StellarSyncShared.Utils.Configuration;
 using Microsoft.EntityFrameworkCore;
 
-namespace MareSynchronosServer.Services;
+namespace StellarSyncServer.Services;
 
 public class UserCleanupService : IHostedService
 {
-    private readonly MareMetrics metrics;
+    private readonly StellarMetrics metrics;
     private readonly ILogger<UserCleanupService> _logger;
-    private readonly IDbContextFactory<MareDbContext> _mareDbContextFactory;
+    private readonly IDbContextFactory<StellarDbContext> _stellarDbContextFactory;
     private readonly IConfigurationService<ServerConfiguration> _configuration;
     private CancellationTokenSource _cleanupCts;
 
-    public UserCleanupService(MareMetrics metrics, ILogger<UserCleanupService> logger, IDbContextFactory<MareDbContext> mareDbContextFactory, IConfigurationService<ServerConfiguration> configuration)
+    public UserCleanupService(StellarMetrics metrics, ILogger<UserCleanupService> logger, IDbContextFactory<StellarDbContext> stellarDbContextFactory, IConfigurationService<ServerConfiguration> configuration)
     {
         this.metrics = metrics;
         _logger = logger;
-        _mareDbContextFactory = mareDbContextFactory;
+        _stellarDbContextFactory = stellarDbContextFactory;
         _configuration = configuration;
     }
 
@@ -38,7 +38,7 @@ public class UserCleanupService : IHostedService
     {
         while (!ct.IsCancellationRequested)
         {
-            using (var dbContext = await _mareDbContextFactory.CreateDbContextAsync(ct).ConfigureAwait(false))
+            using (var dbContext = await _stellarDbContextFactory.CreateDbContextAsync(ct).ConfigureAwait(false))
             {
 
                 CleanUpOutdatedLodestoneAuths(dbContext);
@@ -60,7 +60,7 @@ public class UserCleanupService : IHostedService
         }
     }
 
-    private async Task PurgeTempInvites(MareDbContext dbContext)
+    private async Task PurgeTempInvites(StellarDbContext dbContext)
     {
         try
         {
@@ -73,7 +73,7 @@ public class UserCleanupService : IHostedService
         }
     }
 
-    private async Task PurgeUnusedAccounts(MareDbContext dbContext)
+    private async Task PurgeUnusedAccounts(StellarDbContext dbContext)
     {
         try
         {
@@ -107,7 +107,7 @@ public class UserCleanupService : IHostedService
         }
     }
 
-    private void CleanUpOutdatedLodestoneAuths(MareDbContext dbContext)
+    private void CleanUpOutdatedLodestoneAuths(StellarDbContext dbContext)
     {
         try
         {
@@ -131,7 +131,7 @@ public class UserCleanupService : IHostedService
         }
     }
 
-    public async Task PurgeUser(User user, MareDbContext dbContext)
+    public async Task PurgeUser(User user, StellarDbContext dbContext)
     {
         _logger.LogInformation("Purging user: {uid}", user.UID);
 

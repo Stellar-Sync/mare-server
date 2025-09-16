@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using MareSynchronosShared.Data;
-using MareSynchronosShared.Metrics;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils.Configuration;
+using StellarSyncShared.Data;
+using StellarSyncShared.Metrics;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils.Configuration;
 
-namespace MareSynchronosServer;
+namespace StellarSyncServer;
 
 public class Program
 {
@@ -15,7 +15,7 @@ public class Program
         using (var scope = host.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
-            var factory = services.GetRequiredService<IDbContextFactory<MareDbContext>>();
+            var factory = services.GetRequiredService<IDbContextFactory<StellarDbContext>>();
             using var context = factory.CreateDbContext();
             var options = services.GetRequiredService<IConfigurationService<ServerConfiguration>>();
             var logger = host.Services.GetRequiredService<ILogger<Program>>();
@@ -36,7 +36,7 @@ public class Program
 
                 logger.LogInformation(options.ToString());
             }
-            var metrics = services.GetRequiredService<MareMetrics>();
+            var metrics = services.GetRequiredService<StellarMetrics>();
 
             metrics.SetGaugeTo(MetricsAPI.GaugeUsersRegistered, context.Users.AsNoTracking().Count());
             metrics.SetGaugeTo(MetricsAPI.GaugePairs, context.ClientPairs.AsNoTracking().Count());

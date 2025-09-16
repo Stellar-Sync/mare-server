@@ -1,2 +1,2 @@
 #!/bin/sh
-docker compose -f compose/mare-sharded.yml -p sharded up -d
+docker compose -f compose/stellar-sharded.yml -p sharded up -d

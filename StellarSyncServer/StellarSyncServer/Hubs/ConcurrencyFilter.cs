@@ -1,10 +1,10 @@
-﻿using MareSynchronosShared.Metrics;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils.Configuration;
+﻿using StellarSyncShared.Metrics;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils.Configuration;
 using Microsoft.AspNetCore.SignalR;
 using System.Threading.RateLimiting;
 
-namespace MareSynchronosServer.Hubs;
+namespace StellarSyncServer.Hubs;
 
 public sealed class ConcurrencyFilter : IHubFilter, IDisposable
 {
@@ -15,7 +15,7 @@ public sealed class ConcurrencyFilter : IHubFilter, IDisposable
 
     private bool _disposed;
 
-    public ConcurrencyFilter(IConfigurationService<ServerConfiguration> config, MareMetrics mareMetrics)
+    public ConcurrencyFilter(IConfigurationService<ServerConfiguration> config, StellarMetrics stellarMetrics)
     {
         _config = config;
         _config.ConfigChangedEvent += OnConfigChange;
@@ -30,8 +30,8 @@ public sealed class ConcurrencyFilter : IHubFilter, IDisposable
                 var stats = _limiter?.GetStatistics();
                 if (stats != null)
                 {
-                    mareMetrics.SetGaugeTo(MetricsAPI.GaugeHubConcurrency, stats.CurrentAvailablePermits);
-                    mareMetrics.SetGaugeTo(MetricsAPI.GaugeHubQueuedConcurrency, stats.CurrentQueuedCount);
+                    stellarMetrics.SetGaugeTo(MetricsAPI.GaugeHubConcurrency, stats.CurrentAvailablePermits);
+                    stellarMetrics.SetGaugeTo(MetricsAPI.GaugeHubQueuedConcurrency, stats.CurrentQueuedCount);
                 }
                 await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
             }
@@ -65,7 +65,7 @@ public sealed class ConcurrencyFilter : IHubFilter, IDisposable
     public async ValueTask<object> InvokeMethodAsync(
     HubInvocationContext invocationContext, Func<HubInvocationContext, ValueTask<object>> next)
     {
-        if (string.Equals(invocationContext.HubMethodName, nameof(MareHub.CheckClientHealth), StringComparison.Ordinal))
+        if (string.Equals(invocationContext.HubMethodName, nameof(StellarHub.CheckClientHealth), StringComparison.Ordinal))
         {
             return await next(invocationContext).ConfigureAwait(false);
         }

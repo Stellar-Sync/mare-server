@@ -1,9 +1,9 @@
-﻿using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils.Configuration;
+﻿using StellarSyncShared.Services;
+using StellarSyncShared.Utils.Configuration;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 
-namespace MareSynchronosStaticFilesServer.Services;
+namespace StellarSyncStaticFilesServer.Services;
 
 public class MainServerShardRegistrationService : IHostedService
 {

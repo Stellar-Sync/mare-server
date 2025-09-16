@@ -1,8 +1,8 @@
 ﻿using System.Text;
 
-namespace MareSynchronosShared.Utils.Configuration;
+namespace StellarSyncShared.Utils.Configuration;
 
-public class AuthServiceConfiguration : MareConfigurationBase
+public class AuthServiceConfiguration : StellarConfigurationBase
 {
     public string GeoIPDbCityFile { get; set; } = string.Empty;
     public bool UseGeoIP { get; set; } = false;

@@ -1,17 +1,17 @@
-﻿using MareSynchronosShared.Metrics;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils.Configuration;
-using MareSynchronosStaticFilesServer.Services;
+﻿using StellarSyncShared.Metrics;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils.Configuration;
+using StellarSyncStaticFilesServer.Services;
 
-namespace MareSynchronosStaticFilesServer.Utils;
+namespace StellarSyncStaticFilesServer.Utils;
 
 public class RequestFileStreamResultFactory
 {
-    private readonly MareMetrics _metrics;
+    private readonly StellarMetrics _metrics;
     private readonly RequestQueueService _requestQueueService;
     private readonly IConfigurationService<StaticFilesServerConfiguration> _configurationService;
 
-    public RequestFileStreamResultFactory(MareMetrics metrics, RequestQueueService requestQueueService, IConfigurationService<StaticFilesServerConfiguration> configurationService)
+    public RequestFileStreamResultFactory(StellarMetrics metrics, RequestQueueService requestQueueService, IConfigurationService<StaticFilesServerConfiguration> configurationService)
     {
         _metrics = metrics;
         _requestQueueService = requestQueueService;

@@ -1,4 +1,4 @@
-namespace MareSynchronosAuthService;
+namespace StellarSyncAuthService;
 
 public class Program
 {

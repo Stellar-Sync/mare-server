@@ -1,7 +1,7 @@
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils.Configuration;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils.Configuration;
 
-namespace MareSynchronosStaticFilesServer;
+namespace StellarSyncStaticFilesServer;
 
 public class Program
 {
@@ -13,11 +13,11 @@ public class Program
         using (var scope = host.Services.CreateScope())
         {
             var options = host.Services.GetService<IConfigurationService<StaticFilesServerConfiguration>>();
-            var optionsServer = host.Services.GetService<IConfigurationService<MareConfigurationBase>>();
+            var optionsServer = host.Services.GetService<IConfigurationService<StellarConfigurationBase>>();
             var logger = host.Services.GetService<ILogger<Program>>();
-            logger.LogInformation("Loaded MareSynchronos Static Files Server Configuration (IsMain: {isMain})", options.IsMain);
+            logger.LogInformation("Loaded StellarSync Static Files Server Configuration (IsMain: {isMain})", options.IsMain);
             logger.LogInformation(options.ToString());
-            logger.LogInformation("Loaded MareSynchronos Server Auth Configuration (IsMain: {isMain})", optionsServer.IsMain);
+            logger.LogInformation("Loaded StellarSync Server Auth Configuration (IsMain: {isMain})", optionsServer.IsMain);
             logger.LogInformation(optionsServer.ToString());
         }
 

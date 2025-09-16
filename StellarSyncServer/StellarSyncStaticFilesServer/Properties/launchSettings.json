@@ -8,7 +8,7 @@
     }
   },
   "profiles": {
-    "MareSynchronosStaticFilesServer": {
+    "StellarSyncStaticFilesServer": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "MareSynchronosServer": {
+    "StellarSyncServer": {
       "commandName": "Project",
       "dotnetRunMessages": "true",
       "launchBrowser": false,

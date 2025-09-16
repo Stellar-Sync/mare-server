@@ -1,16 +1,16 @@
 ﻿
-using MareSynchronosShared.Data;
-using MareSynchronosShared.Models;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils.Configuration;
+using StellarSyncShared.Data;
+using StellarSyncShared.Models;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils.Configuration;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics;
 
-namespace MareSynchronosServer.Services;
+namespace StellarSyncServer.Services;
 
-public class ClientPairPermissionsCleanupService(ILogger<ClientPairPermissionsCleanupService> _logger, IDbContextFactory<MareDbContext> _dbContextFactory,
+public class ClientPairPermissionsCleanupService(ILogger<ClientPairPermissionsCleanupService> _logger, IDbContextFactory<StellarDbContext> _dbContextFactory,
     IConfigurationService<ServerConfiguration> _configurationService)
     : BackgroundService
 {
@@ -120,7 +120,7 @@ public class ClientPairPermissionsCleanupService(ILogger<ClientPairPermissionsCl
         _logger.LogInformation("User Permissions Cleanup Finished, removed {total} stale permissions in {time}", removedEntries, st.Elapsed);
     }
 
-    private async Task<List<UserPermissionSet>> UserPermissionCleanup(int userNr, int totalUsers, string uid, MareDbContext dbContext, List<string> pairs)
+    private async Task<List<UserPermissionSet>> UserPermissionCleanup(int userNr, int totalUsers, string uid, StellarDbContext dbContext, List<string> pairs)
     {
         var perms = dbContext.Permissions.Where(p => p.UserUID == uid && !p.Sticky && !pairs.Contains(p.OtherUserUID));
 
@@ -133,7 +133,7 @@ public class ClientPairPermissionsCleanupService(ILogger<ClientPairPermissionsCl
         return await perms.ToListAsync().ConfigureAwait(false);
     }
 
-    private async Task<List<string>> GetAllPairsForUser(string uid, MareDbContext dbContext, CancellationToken ct)
+    private async Task<List<string>> GetAllPairsForUser(string uid, StellarDbContext dbContext, CancellationToken ct)
     {
         var entries = await dbContext.ClientPairs.AsNoTracking().Where(k => k.UserUID == uid).Select(k => k.OtherUserUID)
             .Concat(

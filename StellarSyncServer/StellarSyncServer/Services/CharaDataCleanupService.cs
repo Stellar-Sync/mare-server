@@ -1,14 +1,14 @@
-﻿using MareSynchronosShared.Data;
+﻿using StellarSyncShared.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace MareSynchronosServer.Services;
+namespace StellarSyncServer.Services;
 
 public class CharaDataCleanupService : BackgroundService
 {
     private readonly ILogger<CharaDataCleanupService> _logger;
-    private readonly IDbContextFactory<MareDbContext> _dbContextFactory;
+    private readonly IDbContextFactory<StellarDbContext> _dbContextFactory;
 
-    public CharaDataCleanupService(ILogger<CharaDataCleanupService> logger, IDbContextFactory<MareDbContext> dbContextFactory)
+    public CharaDataCleanupService(ILogger<CharaDataCleanupService> logger, IDbContextFactory<StellarDbContext> dbContextFactory)
     {
         _logger = logger;
         _dbContextFactory = dbContextFactory;

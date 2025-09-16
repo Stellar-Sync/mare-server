@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MareSynchronosServer.Migrations
+namespace StellarSyncServer.Migrations
 {
     /// <inheritdoc />
     public partial class CharaData : Migration

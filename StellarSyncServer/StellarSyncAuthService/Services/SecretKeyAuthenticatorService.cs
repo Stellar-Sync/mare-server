@@ -1,23 +1,23 @@
 ﻿using System.Collections.Concurrent;
-using MareSynchronosAuthService.Authentication;
-using MareSynchronosShared.Data;
-using MareSynchronosShared.Metrics;
-using MareSynchronosShared.Models;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils.Configuration;
+using StellarSyncAuthService.Authentication;
+using StellarSyncShared.Data;
+using StellarSyncShared.Metrics;
+using StellarSyncShared.Models;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils.Configuration;
 using Microsoft.EntityFrameworkCore;
 
-namespace MareSynchronosAuthService.Services;
+namespace StellarSyncAuthService.Services;
 
 public class SecretKeyAuthenticatorService
 {
-    private readonly MareMetrics _metrics;
-    private readonly IDbContextFactory<MareDbContext> _dbContextFactory;
+    private readonly StellarMetrics _metrics;
+    private readonly IDbContextFactory<StellarDbContext> _dbContextFactory;
     private readonly IConfigurationService<AuthServiceConfiguration> _configurationService;
     private readonly ILogger<SecretKeyAuthenticatorService> _logger;
     private readonly ConcurrentDictionary<string, SecretKeyFailedAuthorization> _failedAuthorizations = new(StringComparer.Ordinal);
 
-    public SecretKeyAuthenticatorService(MareMetrics metrics, IDbContextFactory<MareDbContext> dbContextFactory,
+    public SecretKeyAuthenticatorService(StellarMetrics metrics, IDbContextFactory<StellarDbContext> dbContextFactory,
         IConfigurationService<AuthServiceConfiguration> configuration, ILogger<SecretKeyAuthenticatorService> logger)
     {
         _logger = logger;
@@ -55,7 +55,7 @@ public class SecretKeyAuthenticatorService
         return await GetAuthReply(ip, context, authReply).ConfigureAwait(false);
     }
 
-    private async Task<SecretKeyAuthReply> GetAuthReply(string ip, MareDbContext context, Auth? authReply)
+    private async Task<SecretKeyAuthReply> GetAuthReply(string ip, StellarDbContext context, Auth? authReply)
     {
         var isBanned = authReply?.IsBanned ?? false;
         var markedForBan = authReply?.MarkForBan ?? false;

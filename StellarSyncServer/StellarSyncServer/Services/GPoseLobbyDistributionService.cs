@@ -1,10 +1,10 @@
 using StellarSync.API.Dto.CharaData;
 using StellarSync.API.SignalR;
-using MareSynchronosServer.Hubs;
+using StellarSyncServer.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 
-namespace MareSynchronosServer.Services;
+namespace StellarSyncServer.Services;
 
 public sealed class GPoseLobbyDistributionService : IHostedService, IDisposable
 {
@@ -15,7 +15,7 @@ public sealed class GPoseLobbyDistributionService : IHostedService, IDisposable
     private readonly SemaphoreSlim _lobbyWorldDataModificationSemaphore = new(1, 1);
 
     public GPoseLobbyDistributionService(ILogger<GPoseLobbyDistributionService> logger, IRedisDatabase redisDb,
-        IHubContext<MareHub, IMareHub> hubContext)
+        IHubContext<StellarHub, IStellarHub> hubContext)
     {
         _logger = logger;
         _redisDb = redisDb;
@@ -25,7 +25,7 @@ public sealed class GPoseLobbyDistributionService : IHostedService, IDisposable
     private bool _disposed;
     private readonly ILogger<GPoseLobbyDistributionService> _logger;
     private readonly IRedisDatabase _redisDb;
-    private readonly IHubContext<MareHub, IMareHub> _hubContext;
+    private readonly IHubContext<StellarHub, IStellarHub> _hubContext;
 
     public void Dispose()
     {

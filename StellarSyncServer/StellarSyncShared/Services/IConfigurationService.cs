@@ -1,8 +1,8 @@
-﻿using MareSynchronosShared.Utils.Configuration;
+﻿using StellarSyncShared.Utils.Configuration;
 
-namespace MareSynchronosShared.Services;
+namespace StellarSyncShared.Services;
 
-public interface IConfigurationService<T> where T : class, IMareConfiguration
+public interface IConfigurationService<T> where T : class, IStellarConfiguration
 {
     bool IsMain { get; }
 

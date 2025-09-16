@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace MareSynchronosShared.Models;
+namespace StellarSyncShared.Models;
 
 public class Group
 {

@@ -1,10 +1,10 @@
-﻿using MareSynchronosAuthService.Authentication;
-using MareSynchronosAuthService.Services;
-using MareSynchronosShared.Data;
-using MareSynchronosShared.Models;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils;
-using MareSynchronosShared.Utils.Configuration;
+﻿using StellarSyncAuthService.Authentication;
+using StellarSyncAuthService.Services;
+using StellarSyncShared.Data;
+using StellarSyncShared.Models;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils;
+using StellarSyncShared.Utils.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -14,20 +14,20 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace MareSynchronosAuthService.Controllers;
+namespace StellarSyncAuthService.Controllers;
 
 public abstract class AuthControllerBase : Controller
 {
     protected readonly ILogger Logger;
     protected readonly IHttpContextAccessor HttpAccessor;
     protected readonly IConfigurationService<AuthServiceConfiguration> Configuration;
-    protected readonly IDbContextFactory<MareDbContext> MareDbContextFactory;
+    protected readonly IDbContextFactory<StellarDbContext> StellarDbContextFactory;
     protected readonly SecretKeyAuthenticatorService SecretKeyAuthenticatorService;
     private readonly IDatabase _redis;
     private readonly GeoIPService _geoIPProvider;
 
     protected AuthControllerBase(ILogger logger,
-    IHttpContextAccessor accessor, IDbContextFactory<MareDbContext> mareDbContextFactory,
+    IHttpContextAccessor accessor, IDbContextFactory<StellarDbContext> stellarDbContextFactory,
     SecretKeyAuthenticatorService secretKeyAuthenticatorService,
     IConfigurationService<AuthServiceConfiguration> configuration,
     IDatabase redisDb, GeoIPService geoIPProvider)
@@ -36,12 +36,12 @@ public abstract class AuthControllerBase : Controller
         HttpAccessor = accessor;
         _redis = redisDb;
         _geoIPProvider = geoIPProvider;
-        MareDbContextFactory = mareDbContextFactory;
+        StellarDbContextFactory = stellarDbContextFactory;
         SecretKeyAuthenticatorService = secretKeyAuthenticatorService;
         Configuration = configuration;
     }
 
-    protected async Task<IActionResult> GenericAuthResponse(MareDbContext dbContext, string charaIdent, SecretKeyAuthReply authResult)
+    protected async Task<IActionResult> GenericAuthResponse(StellarDbContext dbContext, string charaIdent, SecretKeyAuthReply authResult)
     {
         if (await IsIdentBanned(dbContext, charaIdent))
         {
@@ -52,7 +52,7 @@ public abstract class AuthControllerBase : Controller
         if (!authResult.Success && !authResult.TempBan)
         {
             Logger.LogWarning("Authenticate:INVALID:{id}:{ident}", authResult?.Uid ?? "NOUID", charaIdent);
-            return Unauthorized("The provided secret key is invalid. Verify your Mare accounts existence and/or recover the secret key.");
+            return Unauthorized("The provided secret key is invalid. Verify your Stellar accounts existence and/or recover the secret key.");
         }
         if (!authResult.Success && authResult.TempBan)
         {
@@ -69,14 +69,14 @@ public abstract class AuthControllerBase : Controller
             }
 
             Logger.LogWarning("Authenticate:UIDBAN:{id}:{ident}", authResult.Uid, charaIdent);
-            return Unauthorized("Your Mare account is banned from using the service.");
+            return Unauthorized("Your Stellar account is banned from using the service.");
         }
 
         var existingIdent = await _redis.StringGetAsync("UID:" + authResult.Uid);
         if (!string.IsNullOrEmpty(existingIdent))
         {
             Logger.LogWarning("Authenticate:DUPLICATE:{id}:{ident}", authResult.Uid, charaIdent);
-            return Unauthorized("Already logged in to this Mare account. Reconnect in 60 seconds. If you keep seeing this issue, restart your game.");
+            return Unauthorized("Already logged in to this Stellar account. Reconnect in 60 seconds. If you keep seeing this issue, restart your game.");
         }
 
         Logger.LogInformation("Authenticate:SUCCESS:{id}:{ident}", authResult.Uid, charaIdent);
@@ -85,13 +85,13 @@ public abstract class AuthControllerBase : Controller
 
     protected JwtSecurityToken CreateJwt(IEnumerable<Claim> authClaims)
     {
-        var authSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration.GetValue<string>(nameof(MareConfigurationBase.Jwt))));
+        var authSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration.GetValue<string>(nameof(StellarConfigurationBase.Jwt))));
 
         var token = new SecurityTokenDescriptor()
         {
             Subject = new ClaimsIdentity(authClaims),
             SigningCredentials = new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256Signature),
-            Expires = new(long.Parse(authClaims.First(f => string.Equals(f.Type, MareClaimTypes.Expires, StringComparison.Ordinal)).Value!, CultureInfo.InvariantCulture), DateTimeKind.Utc),
+            Expires = new(long.Parse(authClaims.First(f => string.Equals(f.Type, StellarClaimTypes.Expires, StringComparison.Ordinal)).Value!, CultureInfo.InvariantCulture), DateTimeKind.Utc),
         };
 
         var handler = new JwtSecurityTokenHandler();
@@ -102,11 +102,11 @@ public abstract class AuthControllerBase : Controller
     {
         var token = CreateJwt(new List<Claim>()
         {
-            new Claim(MareClaimTypes.Uid, uid),
-            new Claim(MareClaimTypes.CharaIdent, charaIdent),
-            new Claim(MareClaimTypes.Alias, alias),
-            new Claim(MareClaimTypes.Expires, DateTime.UtcNow.AddHours(6).Ticks.ToString(CultureInfo.InvariantCulture)),
-            new Claim(MareClaimTypes.Continent, await _geoIPProvider.GetCountryFromIP(HttpAccessor))
+            new Claim(StellarClaimTypes.Uid, uid),
+            new Claim(StellarClaimTypes.CharaIdent, charaIdent),
+            new Claim(StellarClaimTypes.Alias, alias),
+            new Claim(StellarClaimTypes.Expires, DateTime.UtcNow.AddHours(6).Ticks.ToString(CultureInfo.InvariantCulture)),
+            new Claim(StellarClaimTypes.Continent, await _geoIPProvider.GetCountryFromIP(HttpAccessor))
         });
 
         return Content(token.RawData);
@@ -114,7 +114,7 @@ public abstract class AuthControllerBase : Controller
 
     protected async Task EnsureBan(string uid, string? primaryUid, string charaIdent)
     {
-        using var dbContext = await MareDbContextFactory.CreateDbContextAsync();
+        using var dbContext = await StellarDbContextFactory.CreateDbContextAsync();
         if (!dbContext.BannedUsers.Any(c => c.CharacterIdentification == charaIdent))
         {
             dbContext.BannedUsers.Add(new Banned()
@@ -153,7 +153,7 @@ public abstract class AuthControllerBase : Controller
         await dbContext.SaveChangesAsync();
     }
 
-    protected async Task<bool> IsIdentBanned(MareDbContext dbContext, string charaIdent)
+    protected async Task<bool> IsIdentBanned(StellarDbContext dbContext, string charaIdent)
     {
         return await dbContext.BannedUsers.AsNoTracking().AnyAsync(u => u.CharacterIdentification == charaIdent).ConfigureAwait(false);
     }

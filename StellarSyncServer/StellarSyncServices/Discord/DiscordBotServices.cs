@@ -3,13 +3,13 @@ using Discord;
 using Discord.Net;
 using Discord.Rest;
 using Discord.WebSocket;
-using MareSynchronosShared.Metrics;
-using MareSynchronosShared.Models;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils.Configuration;
+using StellarSyncShared.Metrics;
+using StellarSyncShared.Models;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils.Configuration;
 using StackExchange.Redis;
 
-namespace MareSynchronosServices.Discord;
+namespace StellarSyncServices.Discord;
 
 public class DiscordBotServices
 {
@@ -28,7 +28,7 @@ public class DiscordBotServices
     private ulong? _logChannelId;
     private RestTextChannel? _logChannel;
 
-    public DiscordBotServices(ILogger<DiscordBotServices> logger, MareMetrics metrics,
+    public DiscordBotServices(ILogger<DiscordBotServices> logger, StellarMetrics metrics,
         IConfigurationService<ServicesConfiguration> configuration)
     {
         Logger = logger;
@@ -37,7 +37,7 @@ public class DiscordBotServices
     }
 
     public ILogger<DiscordBotServices> Logger { get; init; }
-    public MareMetrics Metrics { get; init; }
+    public StellarMetrics Metrics { get; init; }
     public ConcurrentQueue<KeyValuePair<ulong, Func<DiscordBotServices, Task>>> VerificationQueue { get; } = new();
 
     public Task Start()

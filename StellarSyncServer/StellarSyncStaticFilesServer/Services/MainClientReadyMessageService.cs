@@ -1,23 +1,23 @@
 using Microsoft.AspNetCore.SignalR;
 using StellarSync.API.SignalR;
-using MareSynchronosServer.Hubs;
+using StellarSyncServer.Hubs;
 
-namespace MareSynchronosStaticFilesServer.Services;
+namespace StellarSyncStaticFilesServer.Services;
 
 public class MainClientReadyMessageService : IClientReadyMessageService
 {
     private readonly ILogger<MainClientReadyMessageService> _logger;
-    private readonly IHubContext<MareHub> _mareHub;
+    private readonly IHubContext<StellarHub> _stellarHub;
 
-    public MainClientReadyMessageService(ILogger<MainClientReadyMessageService> logger, IHubContext<MareHub> mareHub)
+    public MainClientReadyMessageService(ILogger<MainClientReadyMessageService> logger, IHubContext<StellarHub> stellarHub)
     {
         _logger = logger;
-        _mareHub = mareHub;
+        _stellarHub = stellarHub;
     }
 
     public async Task SendDownloadReady(string uid, Guid requestId)
     {
         _logger.LogInformation("Sending Client Ready for {uid}:{requestId} to SignalR", uid, requestId);
-        await _mareHub.Clients.User(uid).SendAsync(nameof(IMareHub.Client_DownloadReady), requestId).ConfigureAwait(false);
+        await _stellarHub.Clients.User(uid).SendAsync(nameof(IStellarHub.Client_DownloadReady), requestId).ConfigureAwait(false);
     }
 }

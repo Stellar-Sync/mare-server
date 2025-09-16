@@ -1,5 +1,5 @@
 ﻿
-namespace MareSynchronosStaticFilesServer.Utils;
+namespace StellarSyncStaticFilesServer.Utils;
 
 public sealed class BlockFileDataStream : Stream
 {

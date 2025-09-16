@@ -1,10 +1,10 @@
-﻿using MareSynchronosShared.Models;
+﻿using StellarSyncShared.Models;
 using Microsoft.EntityFrameworkCore.Migrations;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 #nullable disable
 
-namespace MareSynchronosServer.Migrations
+namespace StellarSyncServer.Migrations
 {
     /// <inheritdoc />
     public partial class permissions : Migration

@@ -1,10 +1,10 @@
-using MareSynchronosShared.Data;
-using MareSynchronosShared.Metrics;
-using MareSynchronosShared.Services;
-using MareSynchronosShared.Utils;
-using MareSynchronosStaticFilesServer.Controllers;
-using MareSynchronosStaticFilesServer.Services;
-using MareSynchronosStaticFilesServer.Utils;
+using StellarSyncShared.Data;
+using StellarSyncShared.Metrics;
+using StellarSyncShared.Services;
+using StellarSyncShared.Utils;
+using StellarSyncStaticFilesServer.Controllers;
+using StellarSyncStaticFilesServer.Services;
+using StellarSyncStaticFilesServer.Utils;
 using MessagePack;
 using MessagePack.Resolvers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -20,9 +20,9 @@ using StackExchange.Redis.Extensions.System.Text.Json;
 using StackExchange.Redis;
 using System.Net;
 using System.Text;
-using MareSynchronosShared.Utils.Configuration;
+using StellarSyncShared.Utils.Configuration;
 
-namespace MareSynchronosStaticFilesServer;
+namespace StellarSyncStaticFilesServer;
 
 public class Startup
 {
@@ -34,9 +34,9 @@ public class Startup
     {
         Configuration = configuration;
         _logger = logger;
-        var mareSettings = Configuration.GetRequiredSection("MareSynchronos");
-        _isDistributionNode = mareSettings.GetValue(nameof(StaticFilesServerConfiguration.IsDistributionNode), false);
-        _isMain = string.IsNullOrEmpty(mareSettings.GetValue(nameof(StaticFilesServerConfiguration.MainFileServerAddress), string.Empty)) && _isDistributionNode;
+        var stellarSettings = Configuration.GetRequiredSection("StellarSync");
+        _isDistributionNode = stellarSettings.GetValue(nameof(StaticFilesServerConfiguration.IsDistributionNode), false);
+        _isMain = string.IsNullOrEmpty(stellarSettings.GetValue(nameof(StaticFilesServerConfiguration.MainFileServerAddress), string.Empty)) && _isDistributionNode;
     }
 
     public IConfiguration Configuration { get; }
@@ -47,15 +47,15 @@ public class Startup
 
         services.AddLogging();
 
-        services.Configure<StaticFilesServerConfiguration>(Configuration.GetRequiredSection("MareSynchronos"));
-        services.Configure<MareConfigurationBase>(Configuration.GetRequiredSection("MareSynchronos"));
+        services.Configure<StaticFilesServerConfiguration>(Configuration.GetRequiredSection("StellarSync"));
+        services.Configure<StellarConfigurationBase>(Configuration.GetRequiredSection("StellarSync"));
         services.Configure<KestrelServerOptions>(Configuration.GetSection("Kestrel"));
         services.AddSingleton(Configuration);
 
-        var mareConfig = Configuration.GetRequiredSection("MareSynchronos");
+        var stellarConfig = Configuration.GetRequiredSection("StellarSync");
 
         // metrics configuration
-        services.AddSingleton(m => new MareMetrics(m.GetService<ILogger<MareMetrics>>(), new List<string>
+        services.AddSingleton(m => new StellarMetrics(m.GetService<ILogger<StellarMetrics>>(), new List<string>
         {
             MetricsAPI.CounterFileRequests,
             MetricsAPI.CounterFileRequestSize
@@ -89,31 +89,31 @@ public class Startup
         services.AddSingleton<RequestQueueService>();
         services.AddHostedService(p => p.GetService<RequestQueueService>());
         services.AddHostedService(m => m.GetService<FileStatisticsService>());
-        services.AddSingleton<IConfigurationService<MareConfigurationBase>, MareConfigurationServiceClient<MareConfigurationBase>>();
-        services.AddHostedService(p => (MareConfigurationServiceClient<MareConfigurationBase>)p.GetService<IConfigurationService<MareConfigurationBase>>());
+        services.AddSingleton<IConfigurationService<StellarConfigurationBase>, StellarConfigurationServiceClient<StellarConfigurationBase>>();
+        services.AddHostedService(p => (StellarConfigurationServiceClient<StellarConfigurationBase>)p.GetService<IConfigurationService<StellarConfigurationBase>>());
 
         // specific services
         if (_isMain)
         {
             services.AddSingleton<IClientReadyMessageService, MainClientReadyMessageService>();
             services.AddHostedService<MainFileCleanupService>();
-            services.AddSingleton<IConfigurationService<StaticFilesServerConfiguration>, MareConfigurationServiceServer<StaticFilesServerConfiguration>>();
+            services.AddSingleton<IConfigurationService<StaticFilesServerConfiguration>, StellarConfigurationServiceServer<StaticFilesServerConfiguration>>();
             services.AddSingleton<MainServerShardRegistrationService>();
             services.AddHostedService(s => s.GetRequiredService<MainServerShardRegistrationService>());
-            services.AddDbContextPool<MareDbContext>(options =>
+            services.AddDbContextPool<StellarDbContext>(options =>
             {
                 options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"), builder =>
                 {
                     builder.MigrationsHistoryTable("_efmigrationshistory", "public");
                 }).UseSnakeCaseNamingConvention();
                 options.EnableThreadSafetyChecks(false);
-            }, mareConfig.GetValue(nameof(MareConfigurationBase.DbContextPoolSize), 1024));
-            services.AddDbContextFactory<MareDbContext>(options =>
+            }, stellarConfig.GetValue(nameof(StellarConfigurationBase.DbContextPoolSize), 1024));
+            services.AddDbContextFactory<StellarDbContext>(options =>
             {
                 options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"), builder =>
                 {
                     builder.MigrationsHistoryTable("_efmigrationshistory", "public");
-                    builder.MigrationsAssembly("MareSynchronosShared");
+                    builder.MigrationsAssembly("StellarSyncShared");
                 }).UseSnakeCaseNamingConvention();
                 options.EnableThreadSafetyChecks(false);
             });
@@ -144,7 +144,7 @@ public class Startup
             });
 
             // configure redis for SignalR
-            var redisConnection = mareConfig.GetValue(nameof(ServerConfiguration.RedisConnectionString), string.Empty);
+            var redisConnection = stellarConfig.GetValue(nameof(ServerConfiguration.RedisConnectionString), string.Empty);
             signalRServiceBuilder.AddStackExchangeRedis(redisConnection, options => { });
 
             var options = ConfigurationOptions.Parse(redisConnection);
@@ -174,7 +174,7 @@ public class Startup
                     UnreachableServerAction = ServerEnumerationStrategy.UnreachableServerActionOptions.Throw,
                 },
                 MaxValueLength = 1024,
-                PoolSize = mareConfig.GetValue(nameof(ServerConfiguration.RedisPool), 50),
+                PoolSize = stellarConfig.GetValue(nameof(ServerConfiguration.RedisPool), 50),
                 SyncTimeout = options.SyncTimeout,
             };
 
@@ -186,8 +186,8 @@ public class Startup
             services.AddHostedService(s => s.GetRequiredService<ShardRegistrationService>());
             services.AddSingleton<IClientReadyMessageService, ShardClientReadyMessageService>();
             services.AddHostedService<ShardFileCleanupService>();
-            services.AddSingleton<IConfigurationService<StaticFilesServerConfiguration>, MareConfigurationServiceClient<StaticFilesServerConfiguration>>();
-            services.AddHostedService(p => (MareConfigurationServiceClient<StaticFilesServerConfiguration>)p.GetService<IConfigurationService<StaticFilesServerConfiguration>>());
+            services.AddSingleton<IConfigurationService<StaticFilesServerConfiguration>, StellarConfigurationServiceClient<StaticFilesServerConfiguration>>();
+            services.AddHostedService(p => (StellarConfigurationServiceClient<StaticFilesServerConfiguration>)p.GetService<IConfigurationService<StaticFilesServerConfiguration>>());
         }
 
         services.AddMemoryCache();
@@ -198,7 +198,7 @@ public class Startup
             a.FeatureProviders.Remove(a.FeatureProviders.OfType<ControllerFeatureProvider>().First());
             if (_isMain)
             {
-                a.FeatureProviders.Add(new AllowedControllersFeatureProvider(typeof(MareStaticFilesServerConfigurationController),
+                a.FeatureProviders.Add(new AllowedControllersFeatureProvider(typeof(StellarStaticFilesServerConfigurationController),
                     typeof(CacheController), typeof(RequestController), typeof(ServerFilesController),
                     typeof(DistributionController), typeof(MainController), typeof(SpeedTestController)));
             }
@@ -214,7 +214,7 @@ public class Startup
 
         // authentication and authorization 
         services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
-            .Configure<IConfigurationService<MareConfigurationBase>>((o, s) =>
+            .Configure<IConfigurationService<StellarConfigurationBase>>((o, s) =>
             {
                 o.TokenValidationParameters = new()
                 {
@@ -222,7 +222,7 @@ public class Startup
                     ValidateLifetime = true,
                     ValidateAudience = false,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(s.GetValue<string>(nameof(MareConfigurationBase.Jwt))))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(s.GetValue<string>(nameof(StellarConfigurationBase.Jwt))))
                 };
             });
         services.AddAuthentication(o =>
@@ -234,7 +234,7 @@ public class Startup
         services.AddAuthorization(options =>
         {
             options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
-            options.AddPolicy("Internal", new AuthorizationPolicyBuilder().RequireClaim(MareClaimTypes.Internal, "true").Build());
+            options.AddPolicy("Internal", new AuthorizationPolicyBuilder().RequireClaim(StellarClaimTypes.Internal, "true").Build());
         });
         services.AddSingleton<IUserIdProvider, IdBasedUserIdProvider>();
 
@@ -248,9 +248,9 @@ public class Startup
 
         app.UseRouting();
 
-        var config = app.ApplicationServices.GetRequiredService<IConfigurationService<MareConfigurationBase>>();
+        var config = app.ApplicationServices.GetRequiredService<IConfigurationService<StellarConfigurationBase>>();
 
-        var metricServer = new KestrelMetricServer(config.GetValueOrDefault<int>(nameof(MareConfigurationBase.MetricsPort), 4981));
+        var metricServer = new KestrelMetricServer(config.GetValueOrDefault<int>(nameof(StellarConfigurationBase.MetricsPort), 4981));
         metricServer.Start();
 
         app.UseHttpMetrics();
@@ -262,7 +262,7 @@ public class Startup
         {
             if (_isMain)
             {
-                e.MapHub<MareSynchronosServer.Hubs.MareHub>("/dummyhub");
+                e.MapHub<StellarSyncServer.Hubs.StellarHub>("/dummyhub");
             }
 
             e.MapControllers();

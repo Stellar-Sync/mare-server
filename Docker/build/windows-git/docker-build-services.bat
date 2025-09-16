@@ -1,3 +1,3 @@
 @echo off
 
-docker build -t kasuaberra/mare-synchronos-services:latest . -f ..\Dockerfile-MareSynchronosServices-git --no-cache --pull --force-rm
+docker build -t kasuaberra/stellar-sync-services:latest . -f ..\Dockerfile-StellarSyncServices-git --no-cache --pull --force-rm

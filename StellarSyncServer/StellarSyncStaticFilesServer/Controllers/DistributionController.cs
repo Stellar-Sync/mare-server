@@ -1,11 +1,11 @@
 using StellarSync.API.Routes;
-using MareSynchronosStaticFilesServer.Services;
+using StellarSyncStaticFilesServer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MareSynchronosStaticFilesServer.Controllers;
+namespace StellarSyncStaticFilesServer.Controllers;
 
-[Route(MareFiles.Distribution)]
+[Route(StellarFiles.Distribution)]
 public class DistributionController : ControllerBase
 {
     private readonly CachedFileProvider _cachedFileProvider;
@@ -15,11 +15,11 @@ public class DistributionController : ControllerBase
         _cachedFileProvider = cachedFileProvider;
     }
 
-    [HttpGet(MareFiles.Distribution_Get)]
+    [HttpGet(StellarFiles.Distribution_Get)]
     [Authorize(Policy = "Internal")]
     public async Task<IActionResult> GetFile(string file)
     {
-        _logger.LogInformation($"GetFile:{MareUser}:{file}");
+        _logger.LogInformation($"GetFile:{StellarUser}:{file}");
 
         var fs = await _cachedFileProvider.DownloadAndGetLocalFileInfo(file);
         if (fs == null) return NotFound();
