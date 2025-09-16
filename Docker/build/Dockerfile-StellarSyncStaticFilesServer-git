@@ -1,8 +1,8 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 as BUILD
 
-RUN git clone --recurse-submodules https://github.com/Stellar-Sync/stellar-server
+RUN git clone --recurse-submodules https://github.com/Stellar-Sync/server
 
-WORKDIR /stellar-server/StellarSyncServer/StellarSyncStaticFilesServer/
+WORKDIR /server/StellarSyncServer/StellarSyncStaticFilesServer/
 
 RUN dotnet publish \
         --configuration=Release \
